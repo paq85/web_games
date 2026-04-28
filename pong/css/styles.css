@@ -1,0 +1,76 @@
+/* Pixel-retro Pong game styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+}
+
+#game-canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#hud {
+  position: fixed;
+  top: 10px;
+  right: 15px;
+  color: #666;
+  font-size: 10px;
+  font-family: 'Press Start 2P', monospace;
+  text-align: right;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#mute-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffff00;
+  font-size: 24px;
+  font-family: 'Press Start 2P', monospace;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 20;
+}
+
+#mute-indicator.visible {
+  opacity: 1;
+}
+
+#controls-help {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #444;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+}

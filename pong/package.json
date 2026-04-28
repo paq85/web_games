@@ -1,0 +1,12 @@
+{
+  "name": "pong-pixel-retro",
+  "version": "1.0.0",
+  "description": "Pixel-retro Pong arcade game",
+  "main": "index.html",
+  "scripts": {
+    "test": "node tests/run-tests.js",
+    "dev": "node dev-server.js",
+    "serve": "npx http-server -p 8080"
+  },
+  "devDependencies": {}
+}
