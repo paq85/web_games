@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAQ85 Web Games</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #0a0a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 60px 20px 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #00ff88;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+      letter-spacing: 4px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 2px;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 28px;
+      padding: 40px 20px 60px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .game-card {
+      background: #12122a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 28px;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: #00ff88;
+      box-shadow: 0 8px 30px rgba(0, 255, 136, 0.15);
+    }
+
+    .game-card.coming-soon {
+      opacity: 0.55;
+    }
+
+    .game-card.coming-soon:hover {
+      transform: none;
+      border-color: #2a2a4a;
+      box-shadow: none;
+    }
+
+    .game-title {
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-description {
+      font-size: 0.9rem;
+      color: #999;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .game-link {
+      display: inline-block;
+      padding: 10px 22px;
+      background: #00ff88;
+      color: #0a0a1a;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .game-link:hover {
+      background: #00cc6a;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #ff6b35;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 30px 20px;
+      text-align: center;
+      color: #555;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+    }
+
+    footer a {
+      color: #00ff88;
+      text-decoration: none;
+    }
+
+    @media (max-width: 420px) {
+      h1 { font-size: 1.8rem; }
+      .games-grid { grid-template-columns: 1fr; padding: 20px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PAQ85 WEB GAMES</h1>
+    <p class="subtitle">RETRO ARCADE COLLECTION</p>
+  </header>
+
+  <div class="games-grid">
+    <div class="game-card">
+      <div class="game-title">Pong</div>
+      <p class="game-description">
+        Pixel-retro arcade classic. Play local 2-player or challenge the AI across multiple difficulty tiers. Features persistent stats, settings, and sound effects.
+      </p>
+      <a class="game-link" href="pong/index.html">PLAY &rarr;</a>
+    </div>
+
+    <div class="game-card coming-soon">
+      <div class="game-title">
+        Flappy Bird
+        <span class="badge">Coming Soon</span>
+      </div>
+      <p class="game-description">
+        Navigate through pipes in this addictive canvas-based game. Tap, click, or press space to keep your bird flying.
+      </p>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 Damian S &middot; Licensed under <a href="LICENSE">MIT</a>
+  </footer>
+</body>
+</html>
