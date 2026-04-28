@@ -1,0 +1,237 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0f0f23;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #00e5ff;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  background: #1a1a2e;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.mode-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.mode-btn.active {
+  background: #00e5ff;
+  color: #0f0f23;
+}
+
+.mode-btn:hover:not(.active) {
+  color: #ccc;
+}
+
+.status {
+  font-size: 1.2rem;
+  font-weight: 600;
+  min-height: 1.6em;
+  color: #fff;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.status.win {
+  color: #00e676;
+}
+
+.status.draw {
+  color: #ffab40;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: min(80vw, 320px);
+  aspect-ratio: 1;
+}
+
+.cell {
+  background: #1a1a2e;
+  border: 2px solid #2a2a4a;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2rem, 10vw, 3.5rem);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  aspect-ratio: 1;
+  min-width: 64px;
+  min-height: 64px;
+  color: #fff;
+  outline: none;
+}
+
+.cell:hover:not(.taken):not(.game-over) {
+  background: #252545;
+  border-color: #00e5ff;
+}
+
+.cell:focus-visible {
+  border-color: #ffab40;
+  box-shadow: 0 0 0 3px rgba(255, 171, 64, 0.4);
+}
+
+.cell.taken {
+  cursor: default;
+}
+
+.cell.game-over {
+  cursor: default;
+}
+
+.cell.x {
+  color: #00e5ff;
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+}
+
+.cell.o {
+  color: #ff4081;
+  text-shadow: 0 0 12px rgba(255, 64, 129, 0.5);
+}
+
+.cell.winner-cell {
+  background: #1b3a2a;
+  border-color: #00e676;
+  animation: pulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 8px rgba(0, 230, 118, 0.3); }
+  to   { box-shadow: 0 0 20px rgba(0, 230, 118, 0.6); }
+}
+
+.cell .cursor {
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: rgba(255, 171, 64, 0.3);
+  position: absolute;
+}
+
+.scoreboard {
+  display: flex;
+  gap: 24px;
+  font-size: 0.9rem;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.score-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.score-x .score-value { color: #00e5ff; }
+.score-o .score-value { color: #ff4081; }
+.score-draw .score-value { color: #ffab40; }
+
+.controls {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 24px;
+  border: 2px solid #2a2a4a;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #ccc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.btn:hover {
+  border-color: #00e5ff;
+  color: #fff;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #ffab40;
+  outline-offset: 2px;
+}
+
+.btn.primary {
+  background: #00e5ff;
+  color: #0f0f23;
+  border-color: #00e5ff;
+}
+
+.btn.primary:hover {
+  background: #00bcd4;
+  border-color: #00bcd4;
+}
+
+.hint {
+  font-size: 0.7rem;
+  color: #444;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 380px) {
+  h1 { font-size: 1.4rem; }
+  .scoreboard { gap: 16px; }
+  .controls { flex-direction: column; width: min(80vw, 320px); }
+  .btn { width: 100%; text-align: center; }
+}

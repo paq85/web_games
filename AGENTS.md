@@ -9,7 +9,6 @@
 - When creating a new app, do NOT look at how other apps were built. Do NOT copy patterns, structures, or tooling from existing apps. Each app should be designed from scratch using whatever approach best fits that specific app.
 - When working on an existing app, only consider that app's own code and documentation. Do not assume conventions from sibling apps apply.
 - An app's README or specification document is the sole source of truth for how that app works. App-specific behavior documents (for example `pong/PONG_SPECIFICATION.md`, `flappy_bird/FLAPPY_BIRD_DOCUMENTATION.md`, and `ugh/UGH_SPECIFICATION.md`) take precedence over anything else.
-- When creating a new app make sure it's using port that's not occupied by other apps in this repo, so they can all be run at the same time.
 
 ## Device and Browser Compatibility
 - Every user-facing app in this project must work properly on desktop and mobile devices.
