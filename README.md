@@ -7,7 +7,7 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | Game | Status | Description |
 |------|--------|-------------|
 | [Pong](pong/) | ✅ Playable | Pixel-retro arcade Pong with 2-player and AI modes, persistent stats, and sound effects |
-| [Flappy Bird](flappy_bird/) | 🚧 Coming Soon | Navigate through pipes — tap, click, or space to fly |
+| [Flappy Bird](flappy_bird/) | ✅ Playable | Navigate through pipes — tap, click, or space to fly |
 
 ## Play
 
@@ -22,8 +22,11 @@ Open `index.html` in any modern browser to browse and launch games. No build too
 │   ├── css/                # Styles
 │   ├── js/                 # Game logic (modular)
 │   └── sounds/             # Audio assets
-├── flappy_bird/            # Flappy Bird (in development)
-│   └── FLAPPY_BIRD_DOCUMENTATION.md
+├── flappy_bird/            # Flappy Bird
+│   ├── index.html          # Game entry point
+│   ├── css/                # Styles
+│   ├── js/                 # Game logic (modular)
+│   └── tests/              # Automated tests
 ├── LICENSE
 └── README.md
 ```
