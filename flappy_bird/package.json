@@ -7,7 +7,7 @@
     "test": "node tests/run-tests.js",
     "test:acceptance": "npx playwright test",
     "test:all": "node tests/run-tests.js && npx playwright test",
-    "serve": "npx http-server -p 8080"
+    "serve": "npx http-server -p 8900"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"

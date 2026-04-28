@@ -5,8 +5,12 @@
   "main": "index.html",
   "scripts": {
     "test": "node tests/run-tests.js",
+    "test:acceptance": "npx playwright test",
+    "test:all": "node tests/run-tests.js && npx playwright test",
     "dev": "node dev-server.js",
     "serve": "npx http-server -p 8080"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
 }

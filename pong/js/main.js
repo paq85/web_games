@@ -471,6 +471,21 @@ const Game = (function() {
       if (settings.screenShake) Renderer.addShake(5);
       if (!settings.reducedFlash) Renderer.addFlash(0.15);
 
+      // If match is over, go directly to results
+      if (result.events.matchOver) {
+        const winner = result.events.winner;
+        matchWinner = winner;
+        stats = recordMatch(stats, gameState.score1, gameState.score2, winner, gameMode === 'ai');
+        if (winner === 1) Audio.SFX.matchWin();
+        else Audio.SFX.matchLose();
+        if (settings.screenShake) Renderer.addShake(8);
+        if (!settings.reducedFlash) Renderer.addFlash(0.3);
+        screen = C.SCREENS.RESULTS;
+        Audio.stopMusic();
+        Audio.playMenuMusic();
+        return;
+      }
+
       // Reset ball and go to point break
       gameState = resetBallAfterScore(gameState);
       screen = C.SCREENS.POINT_BREAK;
@@ -646,6 +661,9 @@ const Game = (function() {
     getGameState: () => gameState,
   };
 })();
+
+// Expose on window for testing and external access
+window.Game = Game;
 
 // Start the game when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

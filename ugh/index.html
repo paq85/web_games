@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>UGH! - Prehistoric Transport</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #1a0a00;
+      font-family: 'Courier New', monospace;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      display: block;
+      background: #87CEEB;
+      image-rendering: pixelated;
+    }
+
+    /* HUD overlay */
+    #hud {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 8px 12px;
+      display: none;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #hud.active { display: flex; }
+
+    .hud-panel {
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: clamp(10px, 2.5vw, 14px);
+      line-height: 1.5;
+    }
+
+    .hud-label { color: #ffcc00; font-weight: bold; }
+    .hud-value { color: #fff; }
+    .hud-warning { color: #ff4444; animation: blink 0.5s infinite; }
+
+    @keyframes blink {
+      50% { opacity: 0.4; }
+    }
+
+    /* Fuel bar */
+    #fuel-bar-container {
+      width: clamp(60px, 15vw, 120px);
+      height: 10px;
+      background: #333;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    #fuel-bar {
+      height: 100%;
+      background: #44ff44;
+      transition: width 0.1s, background 0.3s;
+    }
+
+    /* Health bar */
+    #health-bar-container {
+      width: clamp(60px, 15vw, 120px);
+      height: 10px;
+      background: #333;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    #health-bar {
+      height: 100%;
+      background: #ff4444;
+      transition: width 0.1s;
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.85);
+      z-index: 20;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay.active { display: flex; }
+
+    .overlay h1 {
+      font-size: clamp(28px, 7vw, 64px);
+      color: #ff6600;
+      text-shadow: 3px 3px 0 #331100, 0 0 30px rgba(255,102,0,0.5);
+      margin-bottom: 10px;
+      letter-spacing: 4px;
+    }
+
+    .overlay h2 {
+      font-size: clamp(18px, 4vw, 32px);
+      color: #ffcc00;
+      margin-bottom: 16px;
+    }
+
+    .overlay p {
+      color: #ccc;
+      font-size: clamp(11px, 2.5vw, 15px);
+      margin-bottom: 8px;
+      max-width: 500px;
+      line-height: 1.5;
+    }
+
+    .overlay .subtitle {
+      color: #999;
+      font-size: clamp(10px, 2vw, 13px);
+      margin-bottom: 20px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      margin: 6px;
+      background: #ff6600;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: clamp(12px, 3vw, 16px);
+      font-weight: bold;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background 0.2s, transform 0.1s;
+      min-width: 140px;
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .btn:hover { background: #ff8833; transform: scale(1.05); }
+    .btn:active { transform: scale(0.95); }
+    .btn.secondary { background: #555; }
+    .btn.secondary:hover { background: #777; }
+
+    /* Level code input */
+    #level-code-section {
+      margin-top: 16px;
+      display: none;
+    }
+
+    #level-code-section.active { display: block; }
+
+    #level-code-input {
+      padding: 8px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      width: 200px;
+      text-align: center;
+      pointer-events: auto;
+    }
+
+    #level-code-error {
+      color: #ff4444;
+      font-size: 12px;
+      margin-top: 4px;
+      min-height: 16px;
+    }
+
+    /* Mobile controls */
+    #mobile-controls {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40%;
+      display: none;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    #mobile-controls.active { display: block; }
+
+    .mobile-btn {
+      position: absolute;
+      width: clamp(50px, 15vw, 70px);
+      height: clamp(50px, 15vw, 70px);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.4);
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .mobile-btn:active { background: rgba(255,255,255,0.4); }
+
+    #btn-up { bottom: 35%; left: 8%; }
+    #btn-down { bottom: 15%; left: 8%; }
+    #btn-left { bottom: 25%; left: 28%; }
+    #btn-right { bottom: 25%; right: 8%; }
+    #btn-action { bottom: 15%; right: 28%; background: rgba(255,102,0,0.3); border-color: rgba(255,102,0,0.6); }
+    #btn-pause {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.3);
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: rgba(255,255,255,0.7);
+      z-index: 16;
+    }
+
+    /* Passenger indicator */
+    #passenger-indicator {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #44ff44;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: clamp(10px, 2.5vw, 13px);
+      display: none;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #passenger-indicator.active { display: block; }
+
+    /* Objective indicator */
+    #objective-indicator {
+      position: absolute;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #ffcc00;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: clamp(10px, 2.5vw, 13px);
+      display: none;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #objective-indicator.active { display: block; }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .hud-warning { animation: none; opacity: 0.7; }
+    }
+
+    /* Small screen adjustments */
+    @media (max-width: 480px) {
+      .hud-panel { padding: 4px 6px; }
+      .btn { padding: 10px 18px; min-width: 110px; min-height: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-panel" id="hud-left">
+        <div><span class="hud-label">SCORE</span> <span class="hud-value" id="hud-score">0</span></div>
+        <div><span class="hud-label">LEVEL</span> <span class="hud-value" id="hud-level">1</span></div>
+        <div>
+          <span class="hud-label">FUEL</span>
+          <div id="fuel-bar-container"><div id="fuel-bar" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="hud-panel" id="hud-right">
+        <div><span class="hud-label">LIVES</span> <span class="hud-value" id="hud-lives">3</span></div>
+        <div><span class="hud-label">DELIVERIES</span> <span class="hud-value" id="hud-deliveries">0/3</span></div>
+        <div>
+          <span class="hud-label">HEALTH</span>
+          <div id="health-bar-container"><div id="health-bar" style="width:100%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Passenger indicator -->
+    <div id="passenger-indicator">🪪 PASSENGER ABOARD</div>
+
+    <!-- Objective indicator -->
+    <div id="objective-indicator"></div>
+
+    <!-- Mobile controls -->
+    <div id="mobile-controls">
+      <div class="mobile-btn" id="btn-up">▲</div>
+      <div class="mobile-btn" id="btn-down">▼</div>
+      <div class="mobile-btn" id="btn-left">◀</div>
+      <div class="mobile-btn" id="btn-right">▶</div>
+      <div class="mobile-btn" id="btn-action">⚡</div>
+      <div id="btn-pause">⏸</div>
+    </div>
+
+    <!-- Title overlay -->
+    <div class="overlay active" id="overlay-title">
+      <h1>UGH!</h1>
+      <p class="subtitle">PREHISTORIC TRANSPORT</p>
+      <p>Pilot your stone-age helicopter through dangerous prehistoric lands. Pick up passengers and deliver them safely while avoiding dinosaurs, terrain, and other hazards.</p>
+      <br>
+      <button class="btn" id="btn-single" data-action="single">1 PLAYER</button>
+      <button class="btn" id="btn-multi" data-action="multi">2 PLAYERS</button>
+      <button class="btn secondary" id="btn-hotseat" data-action="hotseat">HOTSEAT</button>
+      <div id="level-code-section">
+        <br>
+        <p>JUMP TO LEVEL</p>
+        <input type="text" id="level-code-input" placeholder="Level code" maxlength="20">
+        <div id="level-code-error"></div>
+        <br>
+        <button class="btn secondary" id="btn-load-code" data-action="loadcode">LOAD</button>
+      </div>
+      <br>
+      <button class="btn secondary" id="btn-settings" data-action="settings">SETTINGS</button>
+    </div>
+
+    <!-- Pause overlay -->
+    <div class="overlay" id="overlay-pause">
+      <h2>PAUSED</h2>
+      <button class="btn" id="btn-resume" data-action="resume">RESUME</button>
+      <button class="btn secondary" id="btn-restart-pause" data-action="restart">RESTART</button>
+      <button class="btn secondary" id="btn-menu-pause" data-action="menu">MAIN MENU</button>
+    </div>
+
+    <!-- Level intro overlay -->
+    <div class="overlay" id="overlay-level-intro">
+      <h2 id="level-intro-title">LEVEL 1</h2>
+      <p id="level-intro-desc">The Savannah</p>
+      <p id="level-intro-objective">Deliver 3 passengers to their destinations.</p>
+      <p class="subtitle" id="level-intro-hint">Watch out for trees and rocks!</p>
+    </div>
+
+    <!-- Level complete overlay -->
+    <div class="overlay" id="overlay-level-complete">
+      <h2>LEVEL COMPLETE!</h2>
+      <p>Score: <span id="lc-score">0</span></p>
+      <p>Deliveries: <span id="lc-deliveries">0</span></p>
+      <p>Level Code: <span id="lc-code"></span></p>
+      <button class="btn" id="btn-next-level" data-action="nextlevel">NEXT LEVEL</button>
+      <button class="btn secondary" id="btn-replay" data-action="replay">REPLAY</button>
+      <button class="btn secondary" id="btn-menu-lc" data-action="menu">MAIN MENU</button>
+    </div>
+
+    <!-- Game over overlay -->
+    <div class="overlay" id="overlay-gameover">
+      <h2>GAME OVER</h2>
+      <p>Final Score: <span id="go-score">0</span></p>
+      <p>Level Reached: <span id="go-level">1</span></p>
+      <p>Best Score: <span id="go-best">0</span></p>
+      <button class="btn" id="btn-retry" data-action="retry">TRY AGAIN</button>
+      <button class="btn secondary" id="btn-menu-go" data-action="menu">MAIN MENU</button>
+    </div>
+
+    <!-- Campaign complete overlay -->
+    <div class="overlay" id="overlay-campaign-complete">
+      <h2>CAMPAIGN COMPLETE!</h2>
+      <p>You have survived all levels!</p>
+      <p>Final Score: <span id="cc-score">0</span></p>
+      <button class="btn" id="btn-play-again" data-action="replay">PLAY AGAIN</button>
+      <button class="btn secondary" id="btn-menu-cc" data-action="menu">MAIN MENU</button>
+    </div>
+
+    <!-- Settings overlay -->
+    <div class="overlay" id="overlay-settings">
+      <h2>SETTINGS</h2>
+      <p>
+        <label style="color:#ccc;cursor:pointer;pointer-events:auto;">
+          <input type="checkbox" id="settings-sound" checked style="pointer-events:auto;"> Sound Effects
+        </label>
+      </p>
+      <p>
+        <label style="color:#ccc;cursor:pointer;pointer-events:auto;">
+          <input type="checkbox" id="settings-music" checked style="pointer-events:auto;"> Music
+        </label>
+      </p>
+      <p>
+        <label style="color:#ccc;cursor:pointer;pointer-events:auto;">
+          <input type="checkbox" id="settings-reduced-motion" style="pointer-events:auto;"> Reduced Motion
+        </label>
+      </p>
+      <button class="btn" id="btn-settings-back" data-action="settingsback">BACK</button>
+    </div>
+
+    <!-- Multiplayer turn overlay -->
+    <div class="overlay" id="overlay-turn">
+      <h2 id="turn-player-label">PLAYER 1</h2>
+      <p>Score: <span id="turn-score">0</span></p>
+      <p>Pass device to <span id="turn-next-label">Player 2</span></p>
+      <button class="btn" id="btn-turn-start" data-action="turnstart">START TURN</button>
+    </div>
+  </div>
+
+  <script src="js/constants.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/collision.js"></script>
+  <script src="js/terrain.js"></script>
+  <script src="js/helicopter.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -13,23 +13,9 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 
 Open `index.html` in any modern browser to browse and launch games. No build tools or server required.
 
-## Project Structure
+## Coding Info
 
-```
-├── index.html              # Welcome / game launcher page
-├── pong/                   # Pong game
-│   ├── index.html          # Game entry point
-│   ├── css/                # Styles
-│   ├── js/                 # Game logic (modular)
-│   └── sounds/             # Audio assets
-├── flappy_bird/            # Flappy Bird
-│   ├── index.html          # Game entry point
-│   ├── css/                # Styles
-│   ├── js/                 # Game logic (modular)
-│   └── tests/              # Automated tests
-├── LICENSE
-└── README.md
-```
+Coded with OpenCode and Qwen 3.6 27b :)
 
 ## License
 
