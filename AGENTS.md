@@ -3,6 +3,8 @@
 ## Repository Scope
 - This repository contains a static launcher at the root and standalone web apps in subdirectories such as `pong/` and `flappy_bird/`.
 - Keep each app's code, assets, docs, and tests inside that app's directory.
+- When adding, removing or chaning app, make sure to update its details in repository main README.md game list.
+- When asked to modify exising app make sure to update its specification to cover that change. Don't cover bug fixes in the specification.
 
 ## App Independence (Critical)
 - **Every app is completely independent.** There are no shared conventions, shared libraries, shared build tooling, or shared patterns between apps.
@@ -29,6 +31,9 @@
 - When changing gameplay, UI, responsiveness, or input handling, add or update automated tests in the affected app.
 - A new app is not considered complete until its automated tests and headless acceptance tests are included.
 
+## Accessibility Requirements
+Every game must follow WCAG 2.1 AA accessibility standards: full keyboard operability, semantic HTML with proper ARIA attributes and `aria-live` regions for dynamic updates, sufficient color contrast, `prefers-reduced-motion` support, usable at 200% zoom, minimum 44px touch targets, and proper focus management including visible focus indicators. Include automated accessibility tests in the app's test suite.
+
 ## Delivery Rules
-- Do not ship changes that break mobile support, regress major-browser compatibility, or remove dedicated automated coverage for an app.
-- Keep each app's README or specification updated with controls, platform considerations, and test instructions.
+- Do not ship changes that break mobile support, regress major-browser compatibility, remove accessibility features, or remove dedicated automated coverage for an app.
+- Keep each app's README or specification updated with controls, platform considerations, accessibility features, and test instructions.
