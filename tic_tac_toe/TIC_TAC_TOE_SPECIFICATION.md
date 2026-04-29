@@ -42,7 +42,20 @@ A classic two-player strategy board game with an optional AI opponent. Players t
 ## Accessibility
 - Each cell is a focusable button with an `aria-label` describing its position (e.g., "Row 1, Column 1 — empty").
 - The status bar uses `role="status"` and `aria-live="polite"` for screen reader announcements.
-- Sufficient color contrast on all text and marks.
+- **Keyboard operability**: Arrow keys and WASD navigate the cursor across the 3×3 grid. Enter or Space places a mark on the focused cell. "N" starts a new game; "M" toggles game mode.
+- **Focus indicators**: All interactive elements show a visible focus ring when navigated via keyboard.
+- **Touch targets**: All interactive elements, including board cells and buttons, have a minimum touch target size of 44×44px.
+- **prefers-reduced-motion**: Animation effects are disabled when the user's system prefers reduced motion.
+- **Color contrast**: All text, marks, and UI elements meet WCAG 2.1 AA contrast requirements (4.5:1 for normal text, 3:1 for large text and UI components).
+
+## Platform Considerations
+- **Browser compatibility**: The app works in current versions of Chrome, Firefox, Edge, and Safari, including their mobile browser variants.
+- **Responsive design**: The layout adapts across viewports. The board scales proportionally on small screens with cells remaining at least 64px wide. Controls stack vertically on narrow viewports.
+- **Touch support**: Full touch interaction is supported on mobile and tablet devices. Tap targets meet the 44×44px minimum for comfortable interaction.
+
+## Testing
+- **Unit tests**: Run `npm test` from the `tic_tac_toe/` directory to execute the game logic unit tests.
+- **E2E tests**: Run `npm run test:e2e` from the `tic_tac_toe/` directory to execute end-to-end acceptance tests in headless Chromium via Playwright. Install the Chromium browser first with `npm run test:e2e:install` if needed.
 
 ## Persistence
 - Scores are saved to `localStorage` and restored on page load.

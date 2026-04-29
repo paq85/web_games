@@ -8,12 +8,24 @@ window.Game = (function() {
   let animFrameId = null;
   let deathAnimTimer = 0;
   let flashAlpha = 0;
+  let lastAnnouncedScore = -1;
+  let gameOverAnnounced = false;
+
+  function announce(text, assertive) {
+    const elId = assertive ? 'game-alerts' : 'game-status';
+    const el = document.getElementById(elId);
+    if (el) {
+      el.textContent = '';
+      requestAnimationFrame(() => { el.textContent = text; });
+    }
+  }
 
   function init() {
     gameState = createGameState();
     const canvas = document.getElementById('game-canvas');
     Renderer.init(canvas);
     Input.init(canvas);
+    announce('Flappy Bird. Press Space, Arrow Up, click, or tap to start.', false);
     gameLoop(0);
   }
 
@@ -22,6 +34,9 @@ window.Game = (function() {
     screen = C.SCREENS.PLAYING;
     deathAnimTimer = 0;
     flashAlpha = 0;
+    lastAnnouncedScore = -1;
+    gameOverAnnounced = false;
+    announce('Game started.', false);
   }
 
   function handleStart() {
@@ -34,8 +49,13 @@ window.Game = (function() {
 
   function handlePlaying(dt) {
     const flapped = Input.consumeFlap();
-    const result = tick(gameState, flapped);
+    const result = tick(gameState, flapped, Renderer.shouldAnimate());
     gameState = result.state;
+
+    if (result.scoreGained > 0 && gameState.score !== lastAnnouncedScore) {
+      lastAnnouncedScore = gameState.score;
+      announce(`Score: ${gameState.score}`, false);
+    }
 
     if (result.dead) {
       screen = C.SCREENS.GAME_OVER;
@@ -50,6 +70,16 @@ window.Game = (function() {
     deathAnimTimer -= dt;
     if (flashAlpha > 0.01) flashAlpha *= 0.92;
     else flashAlpha = 0;
+
+    if (!gameOverAnnounced) {
+      gameOverAnnounced = true;
+      let msg = `Game over. Score: ${gameState.score}. Best: ${gameState.bestScore}.`;
+      const medal = getMedal(gameState.score);
+      if (medal) {
+        msg += ` Medal: ${medal}.`;
+      }
+      announce(msg, true);
+    }
 
     Renderer.drawGameOverScreen(gameState);
 

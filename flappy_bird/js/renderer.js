@@ -5,10 +5,16 @@ window.Renderer = (function() {
   let canvas = null;
   let ctx = null;
   let scale = 1;
+  let prefersReducedMotion = false;
+
+  function shouldAnimate() {
+    return !prefersReducedMotion;
+  }
 
   function init(canvasEl) {
     canvas = canvasEl;
     ctx = canvas.getContext('2d');
+    prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     resize();
     window.addEventListener('resize', resize);
   }
@@ -227,7 +233,7 @@ window.Renderer = (function() {
       y: 230 * scale / scale,
       vy: 0,
       rotation: 0,
-      wingFrame: Math.floor(Date.now() / 300) % 3,
+      wingFrame: shouldAnimate() ? Math.floor(Date.now() / 300) % 3 : 0,
       wingTimer: 0,
     };
     drawBird(previewBird);
@@ -247,7 +253,7 @@ window.Renderer = (function() {
     });
 
     // Pulsing start indicator
-    const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 300);
+    const pulse = shouldAnimate() ? 0.5 + 0.5 * Math.sin(Date.now() / 300) : 0.5;
     ctx.globalAlpha = 0.5 + pulse * 0.5;
     ctx.font = `bold ${Math.max(10, Math.floor(14 * scale))}px 'Arial', sans-serif`;
     ctx.fillStyle = C.COLORS.birdBody;
@@ -432,5 +438,6 @@ window.Renderer = (function() {
     drawStartScreen,
     drawPlaying,
     drawGameOverScreen,
+    shouldAnimate,
   };
 })();

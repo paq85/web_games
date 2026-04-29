@@ -92,3 +92,67 @@ This document defines only the functional and non-functional requirements for th
 - The primary interaction model shall be simple enough to use with one hand on touch devices and standard keyboard or pointer input on desktop devices.
 - Gameplay shall avoid requiring fine motor precision beyond what is typical for casual browser games.
 - Active gameplay shall avoid unintended browser behaviors, such as page scrolling or accidental input conflicts, where supported by the browser.
+
+## Running Tests
+
+### Unit Tests
+
+Run the unit test suite with:
+
+```bash
+npm test
+```
+
+### Acceptance (E2E) Tests
+
+Run the browser-based acceptance tests with:
+
+```bash
+npm run test:acceptance
+```
+
+Tests execute against headless Chrome via Playwright. Both unit and acceptance tests can be run together with `npm run test:all`.
+
+## Running Locally
+
+Start a local development server with:
+
+```bash
+npm run serve
+```
+
+The game will be available at `http://localhost:8900`.
+
+## Accessibility
+
+The game follows WCAG 2.1 AA accessibility standards.
+
+### Keyboard Controls
+
+- **Space** or **ArrowUp** — flap (fly upward)
+- **Space** or **ArrowUp** — start game from the start screen
+- **Space** or **ArrowUp** — restart after game over
+
+The canvas element has `tabindex="0"` so it receives keyboard focus.
+
+### ARIA Attributes
+
+- The `<canvas>` element carries `role="application"` and an `aria-label` that describes the game and available input methods.
+- A visually hidden element with `aria-live="polite"` announces score updates and state changes to screen readers.
+- A second visually hidden element with `aria-live="assertive"` announces urgent messages such as game-over results.
+- Both live regions use `aria-atomic="true"` so each announcement is read as a complete unit.
+
+### Focus Management
+
+- The canvas element is focusable and serves as the single interaction target.
+- Focus is managed internally so keyboard users can interact without tabbing through multiple elements.
+
+### Reduced Motion
+
+The game detects the `prefers-reduced-motion: reduce` media query and disables non-essential visual animations when the preference is active, while keeping core gameplay intact.
+
+### Touch Support
+
+- Full touch input is supported on mobile and tablet devices.
+- A single tap anywhere on the game area triggers a flap.
+- Touch targets meet the 44px minimum size requirement.

@@ -1,7 +1,7 @@
 # Pong Game Product Requirements Specification
 
 > **Status:** Draft for implementation
-> **Target platform:** Desktop web browsers
+> **Target platform:** Desktop and mobile web browsers
 > **Game modes:** Local two-player and player-versus-AI
 > **Visual direction:** Pixel-retro arcade presentation
 
@@ -35,7 +35,6 @@ The following are out of scope for the current product:
 
 - Online multiplayer, matchmaking, lobbies, or accounts
 - Backend services or cloud-hosted persistence
-- Mobile-first controls as a required feature
 
 ---
 
@@ -108,9 +107,9 @@ The game shall meet the following gameplay behavior requirements:
 
 ### 4.4 Controls and input
 
-The product shall support keyboard controls for two local players and shared global actions.
+The product shall support keyboard, mouse, and touch controls for two local players and shared global actions.
 
-Default controls shall be:
+Default keyboard controls shall be:
 
 | Action | Player 1 | Player 2 | Global |
 |--------|----------|----------|--------|
@@ -119,6 +118,18 @@ Default controls shall be:
 | Confirm / select | — | — | `Enter` or `Space` |
 | Pause | — | — | `Escape` |
 | Mute toggle | — | — | `M` |
+
+Mouse support shall be provided:
+
+- Clicking and holding on the left half of the canvas controls Player 1's paddle, following the cursor's vertical position.
+- Clicking and holding on the right half of the canvas controls Player 2's paddle, following the cursor's vertical position.
+- A single click anywhere on the canvas acts as a confirm/select action in menus.
+
+Touch support shall be provided:
+
+- Touching and dragging on the left half of the canvas controls Player 1's paddle, following the finger's vertical position.
+- Touching and dragging on the right half of the canvas controls Player 2's paddle, following the finger's vertical position.
+- A single tap anywhere on the canvas acts as a confirm/select action in menus.
 
 The game shall also meet the following input requirements:
 
@@ -231,6 +242,14 @@ At minimum, the game shall provide:
 - Consistent visibility of essential HUD information during gameplay
 - A configurable behavior for pause on focus loss, or an equivalent safeguard against accidental background play
 
+The game shall include the following accessibility features:
+
+- **Keyboard operability** — All gameplay and menu functions shall be accessible via keyboard alone, with clearly defined control mappings for both players.
+- **ARIA attributes** — The game canvas shall carry `role="application"` and a descriptive `aria-label` that identifies the game and its default controls, enabling screen readers to convey the purpose of the interactive region.
+- **aria-live regions** — The game shall expose at least one `aria-live="polite"` region and one `aria-live="assertive"` region to announce score changes, game state transitions (serve, point scored, match ended), and other important events to assistive technologies.
+- **Focus management** — The game canvas shall be focusable via `tabindex` and shall receive initial focus so keyboard-only users can begin interacting without needing to locate the interactive element.
+- **prefers-reduced-motion** — When the user's operating system signals a preference for reduced motion via the `prefers-reduced-motion: reduce` media query, the game shall automatically disable or minimize visual effects such as screen shake, particle effects, and animations.
+
 ---
 
 ## 6. Non-Functional Requirements
@@ -326,5 +345,4 @@ The following features are not required by this specification but may be conside
 3. Replay viewing or saved match replays
 4. Expanded leaderboards or local hall-of-fame features
 5. Additional cosmetic packs or audio packs
-6. Optional mobile-friendly control schemes
-7. Online multiplayer in a future product scope
+6. Online multiplayer in a future product scope

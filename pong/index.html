@@ -8,11 +8,21 @@
 </head>
 <body>
   <div id="game-container">
-    <canvas id="game-canvas"></canvas>
+    <canvas id="game-canvas" role="application" aria-label="Pong game - use W/S for Player 1, Arrow Up/Down for Player 2" tabindex="0"></canvas>
   </div>
   <div id="hud"></div>
+  <div id="game-announcer" aria-live="polite" class="sr-only"></div>
+  <div id="urgent-announcer" aria-live="assertive" class="sr-only"></div>
   <div id="mute-indicator">MUTED</div>
   <div id="controls-help">W/S: Player 1 | UP/DOWN: Player 2 | ESC: Pause | M: Mute</div>
+
+  <!-- Touch controls overlay (visible on mobile/touch devices) -->
+  <div id="touch-controls">
+    <div class="touch-zone left"></div>
+    <div class="touch-zone right"></div>
+    <div class="touch-hint left">P1</div>
+    <div class="touch-hint right">P2</div>
+  </div>
 
   <script src="js/constants.js"></script>
   <script src="js/game.js"></script>

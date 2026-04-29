@@ -10,7 +10,7 @@
 - **Every app is completely independent.** There are no shared conventions, shared libraries, shared build tooling, or shared patterns between apps.
 - When creating a new app, do NOT look at how other apps were built. Do NOT copy patterns, structures, or tooling from existing apps. Each app should be designed from scratch using whatever approach best fits that specific app.
 - When working on an existing app, only consider that app's own code and documentation. Do not assume conventions from sibling apps apply.
-- An app's README or specification document is the sole source of truth for how that app works. App-specific behavior documents (for example `pong/PONG_SPECIFICATION.md`, `flappy_bird/FLAPPY_BIRD_DOCUMENTATION.md`, and `ugh/UGH_SPECIFICATION.md`) take precedence over anything else.
+- An app's README or specification document is the sole source of truth for how that app works. App-specific behavior documents (for example `pong/PONG_SPECIFICATION.md` and `flappy_bird/FLAPPY_BIRD_DOCUMENTATION.md`) take precedence over anything else.
 
 ## Device and Browser Compatibility
 - Every user-facing app in this project must work properly on desktop and mobile devices.
@@ -23,6 +23,8 @@
 - Each app should remain easy to run locally without unnecessary build complexity.
 - Run tests from the affected app's directory using that app's own local scripts and tooling.
 - Any app that does not yet have automated coverage should gain it as part of ongoing work.
+- There MUST be only NodeJS (and related tools) dependencies in this repo, e.g. no python (tools) use.
+- Each app MUST provide a way to run it locally using basic NodeJS HTTP server.
 
 ## Automated Testing Requirements
 - Every app must have its own dedicated automated test suite that covers its logic, UI behavior, and app-specific regressions.

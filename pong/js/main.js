@@ -35,6 +35,23 @@ const Game = (function() {
   let attractAI2 = null;
   let attractResetTimer = 0;
 
+  // Accessibility announcements
+  function announce(message) {
+    const el = document.getElementById('game-announcer');
+    if (el) {
+      el.textContent = '';
+      setTimeout(() => { el.textContent = message; }, 50);
+    }
+  }
+
+  function urgentAnnounce(message) {
+    const el = document.getElementById('urgent-announcer');
+    if (el) {
+      el.textContent = '';
+      setTimeout(() => { el.textContent = message; }, 50);
+    }
+  }
+
   function init() {
     settings = loadSettings();
     stats = loadStats();
@@ -77,6 +94,7 @@ const Game = (function() {
     menuSubMode = null;
     Audio.stopMusic();
     Audio.playMenuMusic();
+    announce('Main menu');
   }
 
   function startMatch(mode, difficulty) {
@@ -94,6 +112,7 @@ const Game = (function() {
     Audio.stopMusic();
     Audio.playGameMusic();
     Audio.SFX.serve();
+    urgentAnnounce('Match starting');
   }
 
   function pauseGame() {
@@ -101,12 +120,14 @@ const Game = (function() {
     screen = C.SCREENS.PAUSED;
     prevScreen = C.SCREENS.PLAYING;
     Audio.SFX.pause();
+    urgentAnnounce('Game paused');
   }
 
   function resumeGame() {
     if (screen !== C.SCREENS.PAUSED) return;
     screen = C.SCREENS.PLAYING;
     Audio.SFX.resume();
+    announce('Game resumed');
   }
 
   function handleMainMenu() {
@@ -116,13 +137,16 @@ const Game = (function() {
     if (Input.consumePress(keys.p1Up) || Input.consumePress(keys.p2Up)) {
       menuIndex = (menuIndex - 1 + items.length) % items.length;
       Audio.SFX.menuNavigate();
+      announce(items[menuIndex]);
     } else if (Input.consumePress(keys.p1Down) || Input.consumePress(keys.p2Down)) {
       menuIndex = (menuIndex + 1) % items.length;
       Audio.SFX.menuNavigate();
+      announce(items[menuIndex]);
     }
 
     if (Input.consumePress(keys.confirm) || Input.consumePress('Space')) {
       Audio.SFX.menuConfirm();
+      announce(items[menuIndex] + ' selected');
       if (items[menuIndex] === 'PLAY') {
         screen = C.SCREENS.MODE_SELECT;
         menuIndex = 0;
@@ -483,9 +507,11 @@ const Game = (function() {
         screen = C.SCREENS.RESULTS;
         Audio.stopMusic();
         Audio.playMenuMusic();
+        urgentAnnounce(`Player ${winner} wins the match. Score ${gameState.score1} to ${gameState.score2}`);
         return;
       }
 
+      announce(`Player ${scorer} scores. Score ${gameState.score1} to ${gameState.score2}`);
       // Reset ball and go to point break
       gameState = resetBallAfterScore(gameState);
       screen = C.SCREENS.POINT_BREAK;
@@ -506,6 +532,7 @@ const Game = (function() {
       screen = C.SCREENS.RESULTS;
       Audio.stopMusic();
       Audio.playMenuMusic();
+      urgentAnnounce(`Player ${winner} wins the match. Score ${gameState.score1} to ${gameState.score2}`);
       return;
     }
 
@@ -529,6 +556,7 @@ const Game = (function() {
 
     if (Input.consumePress(keys.confirm) || Input.consumePress('Space')) {
       Audio.SFX.menuConfirm();
+      announce('Starting rematch');
       // Rematch
       startMatch(gameMode, aiDifficulty);
       return;
@@ -562,6 +590,7 @@ const Game = (function() {
       settings.muted = !settings.muted;
       Audio.setMute(settings.muted);
       saveSettings(settings);
+      announce(settings.muted ? 'Audio muted' : 'Audio unmuted');
     }
 
     // Handle ball reset after scoring

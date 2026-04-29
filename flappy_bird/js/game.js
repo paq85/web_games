@@ -277,9 +277,10 @@ function getMedal(score) {
  * Full game tick: update bird, pipes, check collisions, update score.
  * @param {object} state
  * @param {boolean} flapped - Whether the player flapped this frame
+ * @param {boolean} [animateGround=true] - Whether to animate ground scroll
  * @returns {{ state: object, dead: boolean, scoreGained: number }}
  */
-function tick(state, flapped) {
+function tick(state, flapped, animateGround) {
   let bird = state.bird;
 
   if (flapped) {
@@ -304,7 +305,7 @@ function tick(state, flapped) {
     score: newScore,
     bestScore: bestScore,
     frameCount: frameCount,
-    groundOffset: updateGroundOffset(state.groundOffset),
+    groundOffset: animateGround !== false ? updateGroundOffset(state.groundOffset) : state.groundOffset,
   };
 
   const dead = checkDeath(bird, pipeResult.pipes);

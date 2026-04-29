@@ -15,12 +15,13 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'cd .. && python3 -m http.server 8900',
+    command: 'npx http-server -p 8900 -c-1',
     port: 8900,
     reuseExistingServer: !process.env.CI,
     timeout: 10_000,
     stdout: 'pipe',
     stderr: 'pipe',
+    cwd: '..',
   },
   projects: [
     {
