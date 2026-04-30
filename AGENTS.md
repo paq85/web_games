@@ -1,5 +1,8 @@
 # Project Guidelines
 
+## User Requests
+- Whenever user asks to create a new game (or just a specifiaction) add the initial user prompt/request and his answers to your questions in the app specification. Thanks to that it will be clear how the game was initially created.
+
 ## Repository Scope
 - This repository contains a static launcher at the root and standalone web apps in subdirectories such as `pong/` and `flappy_bird/`.
 - Keep each app's code, assets, docs, and tests inside that app's directory.
@@ -29,9 +32,11 @@
 ## Automated Testing Requirements
 - Every app must have its own dedicated automated test suite that covers its logic, UI behavior, and app-specific regressions.
 - Every app must also include automated acceptance or end-to-end tests that run in a headless browser.
+- Automated acceptance tests must cover app's all main features and use cases.
 - **Chrome-only testing is sufficient.** There is no need to set up or run tests against Firefox, WebKit/Safari, or any other browser engine. Use whatever tooling runs against headless Chrome (Playwright with Chromium, Puppeteer, etc.).
 - When changing gameplay, UI, responsiveness, or input handling, add or update automated tests in the affected app.
 - A new app is not considered complete until its automated tests and headless acceptance tests are included.
+- You MUST NOT claim you have completed game related task (creating new game, improving it, fixing bug) when automated tests are not all passing.
 
 ## Accessibility Requirements
 Every game must follow WCAG 2.1 AA accessibility standards: full keyboard operability, semantic HTML with proper ARIA attributes and `aria-live` regions for dynamic updates, sufficient color contrast, `prefers-reduced-motion` support, usable at 200% zoom, minimum 44px touch targets, and proper focus management including visible focus indicators. Include automated accessibility tests in the app's test suite.

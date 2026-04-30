@@ -15,6 +15,7 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | [Flappy Bird](flappy_bird/) | [flappy_bird/](flappy_bird/) | [Play](https://paq85.github.io/web_games/flappy_bird/) | Navigate through pipes — tap, click, or space to fly |
 | [Tic Tac Toe](tic_tac_toe/) | [tic_tac_toe/](tic_tac_toe/) | [Play](https://paq85.github.io/web_games/tic_tac_toe/) | Classic strategy game with local 2-player or unbeatable AI, keyboard navigation, and persistent score tracking |
 | [Snake](snake/) | [snake/](snake/) | [Play](https://paq85.github.io/web_games/snake/) | Guide the growing snake to collect food — arrow keys, WASD, or swipe on mobile, with increasing speed and persistent high scores |
+| [Fusion](fusion/) | [fusion/](fusion/) | [Play](https://paq85.github.io/web_games/fusion/) | 2048-inspired puzzle with neon sci-fi theme — special tiles, grid zones, mutations, power-ups, and combos |
 
 ## Coding Info
 

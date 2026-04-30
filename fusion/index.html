@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="description" content="FUSION - A 2048-inspired puzzle game with neon sci-fi theme">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>FUSION</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas" aria-hidden="true"></canvas>
+
+    <div id="grid-container" role="grid" aria-label="FUSION game grid 4 by 4" tabindex="0">
+      <div id="grid-cells"></div>
+    </div>
+
+    <div id="hud" aria-hidden="true">
+      <div id="score-panel">
+        <div id="score-display" aria-live="polite" aria-atomic="true">
+          <span class="hud-label">SCORE</span>
+          <span id="score-value">0</span>
+        </div>
+        <div id="best-display">
+          <span class="hud-label">BEST</span>
+          <span id="best-value">0</span>
+        </div>
+      </div>
+      <div id="streak-display" aria-live="polite">
+        <span id="streak-value"></span>
+      </div>
+      <div id="level-display">
+        <span class="hud-label">LEVEL</span>
+        <span id="level-value">1</span>
+      </div>
+      <div id="pause-btn" role="button" aria-label="Pause game" tabindex="0" data-action="pause">
+        <span aria-hidden="true">⏸</span>
+      </div>
+    </div>
+
+    <div id="powerup-bar" aria-label="Power-ups" aria-hidden="true">
+      <div class="powerup-slot" data-powerup="undo" role="button" aria-label="Undo - 0 charges" tabindex="0" title="Undo: Revert the last move. Can be used up to 2 times consecutively.">
+        <span class="powerup-icon">↩</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Undo<br>Revert last move (max 2x)</span>
+      </div>
+      <div class="powerup-slot" data-powerup="split" role="button" aria-label="Split - 0 charges" tabindex="0" title="Split: Split a tile into two tiles with half its value. Click the power-up, then click a tile on the grid.">
+        <span class="powerup-icon">✂</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Split<br>Divide a tile into halves</span>
+      </div>
+      <div class="powerup-slot" data-powerup="nuke" role="button" aria-label="Nuke - 0 charges" tabindex="0" title="Nuke: Destroy all tiles matching the value of the tile you click. Earns points for destroyed tiles.">
+        <span class="powerup-icon">☢</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Nuke<br>Destroy all matching tiles</span>
+      </div>
+      <div class="powerup-slot" data-powerup="freeze" role="button" aria-label="Freeze - 0 charges" tabindex="0" title="Freeze: Prevents a new tile from spawning after your next move. Useful for buying space.">
+        <span class="powerup-icon">❄</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Freeze<br>No new tile next move</span>
+      </div>
+      <div class="powerup-slot" data-powerup="swap" role="button" aria-label="Swap - 0 charges" tabindex="0" title="Swap: Swap the positions of two tiles on the grid. Click the power-up, then click two tiles.">
+        <span class="powerup-icon">⇄</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Swap<br>Exchange two tile positions</span>
+      </div>
+      <div class="powerup-slot" data-powerup="stabilize" role="button" aria-label="Stabilize - 0 charges" tabindex="0" title="Stabilize: Prevents grid mutations for the next 3 moves, keeping the board stable.">
+        <span class="powerup-icon">⚓</span>
+        <span class="powerup-count">0</span>
+        <span class="powerup-tooltip">Stabilize<br>Block mutations for 3 moves</span>
+      </div>
+    </div>
+
+    <div id="achievement-toast" aria-live="assertive" aria-atomic="true"></div>
+
+    <div id="overlay-container">
+      <div id="splash-screen" class="overlay" role="dialog" aria-label="Loading screen">
+        <div class="splash-content">
+          <h1 class="splash-title">FUSION</h1>
+          <div class="splash-bar">
+            <div class="splash-progress"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="main-menu" class="overlay" role="dialog" aria-label="Main menu" aria-modal="true">
+        <div class="menu-content">
+          <h1 class="menu-title">FUSION</h1>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-action="play" role="menuitem" tabindex="-1">Play</button>
+            <button class="menu-btn" data-action="challenges" role="menuitem" tabindex="-1">Challenges</button>
+            <button class="menu-btn" data-action="daily" role="menuitem" tabindex="-1">Daily Puzzle</button>
+            <button class="menu-btn" data-action="statistics" role="menuitem" tabindex="-1">Statistics</button>
+            <button class="menu-btn" data-action="achievements" role="menuitem" tabindex="-1">Achievements</button>
+            <button class="menu-btn" data-action="instructions" role="menuitem" tabindex="-1">How to Play</button>
+            <button class="menu-btn" data-action="settings" role="menuitem" tabindex="-1">Settings</button>
+          </nav>
+        </div>
+      </div>
+
+      <div id="mode-select" class="overlay" role="dialog" aria-label="Select game mode" aria-modal="true">
+        <div class="menu-content">
+          <h2 class="menu-subtitle">Choose Mode</h2>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-mode="classic" role="menuitem" tabindex="-1">
+              <span class="mode-name">Classic</span>
+              <span class="mode-desc">Reach 2048</span>
+            </button>
+            <button class="menu-btn" data-mode="endless" role="menuitem" tabindex="-1">
+              <span class="mode-name">Endless</span>
+              <span class="mode-desc">No limits</span>
+            </button>
+            <button class="menu-btn" data-mode="challenge" role="menuitem" tabindex="-1">
+              <span class="mode-name">Challenge</span>
+              <span class="mode-desc">Specific goals</span>
+            </button>
+          </nav>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="pause-menu" class="overlay" role="dialog" aria-label="Pause menu" aria-modal="true">
+        <div class="menu-content">
+          <h2 class="menu-subtitle">Paused</h2>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-action="resume" role="menuitem" tabindex="-1">Resume</button>
+            <button class="menu-btn" data-action="restart" role="menuitem" tabindex="-1">Restart</button>
+            <button class="menu-btn" data-action="settings" role="menuitem" tabindex="-1">Settings</button>
+            <button class="menu-btn" data-action="menu" role="menuitem" tabindex="-1">Main Menu</button>
+          </nav>
+        </div>
+      </div>
+
+      <div id="game-over" class="overlay" role="dialog" aria-label="Game over" aria-modal="true">
+        <div class="menu-content">
+          <h2 class="menu-subtitle">Game Over</h2>
+          <div class="stats-panel">
+            <div class="stat-row"><span class="stat-label">Score</span><span class="stat-value" id="go-score">0</span></div>
+            <div class="stat-row"><span class="stat-label">Highest Tile</span><span class="stat-value" id="go-highest">0</span></div>
+            <div class="stat-row"><span class="stat-label">Best Streak</span><span class="stat-value" id="go-streak">0</span></div>
+            <div class="stat-row"><span class="stat-label">Merges</span><span class="stat-value" id="go-merges">0</span></div>
+          </div>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-action="retry" role="menuitem" tabindex="-1">Retry</button>
+            <button class="menu-btn" data-action="menu" role="menuitem" tabindex="-1">Main Menu</button>
+          </nav>
+        </div>
+      </div>
+
+      <div id="win-screen" class="overlay" role="dialog" aria-label="You won" aria-modal="true">
+        <div class="menu-content">
+          <h2 class="menu-subtitle">Fusion Achieved!</h2>
+          <div class="stats-panel">
+            <div class="stat-row"><span class="stat-label">Score</span><span class="stat-value" id="win-score">0</span></div>
+            <div class="stat-row"><span class="stat-label">Highest Tile</span><span class="stat-value" id="win-highest">2048</span></div>
+            <div class="stat-row"><span class="stat-label">Best Streak</span><span class="stat-value" id="win-streak">0</span></div>
+          </div>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-action="continue" role="menuitem" tabindex="-1">Continue Playing</button>
+            <button class="menu-btn" data-action="menu" role="menuitem" tabindex="-1">Main Menu</button>
+          </nav>
+        </div>
+      </div>
+
+      <div id="challenge-list" class="overlay" role="dialog" aria-label="Challenge list" aria-modal="true">
+        <div class="menu-content scrollable">
+          <h2 class="menu-subtitle">Challenges</h2>
+          <div id="challenge-items" class="challenge-list" role="list"></div>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="daily-puzzle" class="overlay" role="dialog" aria-label="Daily puzzle" aria-modal="true">
+        <div class="menu-content">
+          <h2 class="menu-subtitle">Daily Puzzle</h2>
+          <div class="daily-info">
+            <div class="daily-target"><span class="hud-label">TARGET</span><span id="daily-target-value">0</span></div>
+            <div class="daily-attempts"><span class="hud-label">ATTEMPTS LEFT</span><span id="daily-attempts-value">3</span></div>
+          </div>
+          <nav class="menu-nav" role="menu">
+            <button class="menu-btn" data-action="start-daily" role="menuitem" tabindex="-1">Start Puzzle</button>
+            <button class="menu-btn" data-action="leaderboard" role="menuitem" tabindex="-1">Leaderboard</button>
+          </nav>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="settings-screen" class="overlay" role="dialog" aria-label="Settings" aria-modal="true">
+        <div class="menu-content scrollable">
+          <h2 class="menu-subtitle">Settings</h2>
+          <div class="settings-group">
+            <h3 class="settings-group-title">Audio</h3>
+            <div class="setting-row">
+              <label for="master-volume">Master Volume</label>
+              <input type="range" id="master-volume" min="0" max="100" value="80" aria-label="Master volume">
+              <span class="setting-value" id="master-volume-val">80%</span>
+            </div>
+            <div class="setting-row">
+              <label for="music-volume">Music Volume</label>
+              <input type="range" id="music-volume" min="0" max="100" value="60" aria-label="Music volume">
+              <span class="setting-value" id="music-volume-val">60%</span>
+            </div>
+            <div class="setting-row">
+              <label for="sfx-volume">Sound Effects Volume</label>
+              <input type="range" id="sfx-volume" min="0" max="100" value="80" aria-label="Sound effects volume">
+              <span class="setting-value" id="sfx-volume-val">80%</span>
+            </div>
+            <div class="setting-row toggle">
+              <span>Mute All</span>
+              <button class="toggle-switch" id="mute-toggle" role="switch" aria-checked="false" aria-label="Mute all audio" tabindex="0">
+                <span class="toggle-knob"></span>
+              </button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3 class="settings-group-title">Visual</h3>
+            <div class="setting-row toggle">
+              <span>Screen Shake</span>
+              <button class="toggle-switch" id="shake-toggle" role="switch" aria-checked="true" aria-label="Toggle screen shake" tabindex="0">
+                <span class="toggle-knob"></span>
+              </button>
+            </div>
+            <div class="setting-row">
+              <label for="particle-quality">Particle Effects</label>
+              <select id="particle-quality" aria-label="Particle effect quality">
+                <option value="full">Full</option>
+                <option value="reduced">Reduced</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label for="glow-intensity">Grid Glow</label>
+              <select id="glow-intensity" aria-label="Grid glow intensity">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label for="tile-colors">Tile Colors</label>
+              <select id="tile-colors" aria-label="Tile color scheme">
+                <option value="neon" selected>Neon</option>
+                <option value="classic">Classic</option>
+                <option value="high-contrast">High Contrast</option>
+              </select>
+            </div>
+            <div class="setting-row toggle">
+              <span>Reduced Flash</span>
+              <button class="toggle-switch" id="flash-toggle" role="switch" aria-checked="false" aria-label="Toggle reduced flash" tabindex="0">
+                <span class="toggle-knob"></span>
+              </button>
+            </div>
+            <div class="setting-row toggle">
+              <span>Show Tile Numbers</span>
+              <button class="toggle-switch" id="numbers-toggle" role="switch" aria-checked="true" aria-label="Toggle tile numbers" tabindex="0">
+                <span class="toggle-knob"></span>
+              </button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3 class="settings-group-title">Gameplay</h3>
+            <div class="setting-row">
+              <label for="tile-probability">New Tile Probability</label>
+              <select id="tile-probability" aria-label="New tile probability">
+                <option value="balanced" selected>Balanced (90% value 2)</option>
+                <option value="risky">Risky (50% value 2)</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label for="mutation-difficulty">Mutation Difficulty</label>
+              <select id="mutation-difficulty" aria-label="Mutation difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label for="swipe-sensitivity">Swipe Sensitivity</label>
+              <select id="swipe-sensitivity" aria-label="Swipe sensitivity">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="setting-row toggle">
+              <span>Pause on Focus Loss</span>
+              <button class="toggle-switch" id="pause-focus-toggle" role="switch" aria-checked="true" aria-label="Toggle pause on focus loss" tabindex="0">
+                <span class="toggle-knob"></span>
+              </button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3 class="settings-group-title">Data</h3>
+            <button class="menu-btn danger" id="reset-stats-btn" aria-label="Reset all statistics">Reset Statistics</button>
+          </div>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="statistics-screen" class="overlay" role="dialog" aria-label="Statistics" aria-modal="true">
+        <div class="menu-content scrollable">
+          <h2 class="menu-subtitle">Statistics</h2>
+          <div class="stats-panel">
+            <div class="stat-row"><span class="stat-label">Games Played</span><span class="stat-value" id="stat-games">0</span></div>
+            <div class="stat-row"><span class="stat-label">Wins</span><span class="stat-value" id="stat-wins">0</span></div>
+            <div class="stat-row"><span class="stat-label">Best Score</span><span class="stat-value" id="stat-best">0</span></div>
+            <div class="stat-row"><span class="stat-label">Best Classic</span><span class="stat-value" id="stat-best-classic">0</span></div>
+            <div class="stat-row"><span class="stat-label">Best Endless</span><span class="stat-value" id="stat-best-endless">0</span></div>
+            <div class="stat-row"><span class="stat-label">Highest Tile</span><span class="stat-value" id="stat-highest-tile">0</span></div>
+            <div class="stat-row"><span class="stat-label">Total Merges</span><span class="stat-value" id="stat-merges">0</span></div>
+            <div class="stat-row"><span class="stat-label">Best Streak</span><span class="stat-value" id="stat-streak">0</span></div>
+            <div class="stat-row"><span class="stat-label">Bombs Destroyed</span><span class="stat-value" id="stat-bombs">0</span></div>
+            <div class="stat-row"><span class="stat-label">Mutations Survived</span><span class="stat-value" id="stat-mutations">0</span></div>
+            <div class="stat-row"><span class="stat-label">Challenges Completed</span><span class="stat-value" id="stat-challenges">0</span></div>
+            <div class="stat-row"><span class="stat-label">Daily Puzzles</span><span class="stat-value" id="stat-daily">0</span></div>
+            <div class="stat-row"><span class="stat-label">Level</span><span class="stat-value" id="stat-level">1</span></div>
+          </div>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="achievements-screen" class="overlay" role="dialog" aria-label="Achievements" aria-modal="true">
+        <div class="menu-content scrollable">
+          <h2 class="menu-subtitle">Achievements</h2>
+          <div id="achievement-list" class="achievement-list" role="list"></div>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+
+      <div id="instructions-screen" class="overlay" role="dialog" aria-label="How to play" aria-modal="true">
+        <div class="menu-content scrollable">
+          <h2 class="menu-subtitle">How to Play</h2>
+          <div class="instructions-body">
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Core Gameplay</h3>
+              <p>Slide all tiles on the 4x4 grid in one direction at a time. Tiles with the same value merge into one, doubling their value. After every move a new tile (value 2 or 4) spawns in an empty cell.</p>
+              <p><strong>Goal:</strong> Create a tile with the value <strong>2048</strong> (Classic mode) or reach the highest score possible (Endless mode).</p>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Controls</h3>
+              <div class="instruction-row"><span class="instruction-key">Arrow keys</span> or <span class="instruction-key">W A S D</span><span class="instruction-desc">Slide tiles</span></div>
+              <div class="instruction-row"><span class="instruction-key">Esc</span> / <span class="instruction-key">P</span><span class="instruction-desc">Pause</span></div>
+              <div class="instruction-row"><span class="instruction-key">Z</span><span class="instruction-desc">Undo last move</span></div>
+              <div class="instruction-row"><span class="instruction-key">M</span><span class="instruction-desc">Mute audio</span></div>
+              <div class="instruction-row"><span class="instruction-key">Swipe</span><span class="instruction-desc">Slide tiles (touch)</span></div>
+              <div class="instruction-row"><span class="instruction-key">Drag</span><span class="instruction-desc">Slide tiles (mouse)</span></div>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Special Tiles</h3>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">★</span><span class="instruction-name">Wildcard</span><span class="instruction-desc">Merges with any tile, taking its value</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">💥</span><span class="instruction-name">Bomb</span><span class="instruction-desc">Cannot merge; destroys both tiles on collision</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">🛡</span><span class="instruction-name">Shield</span><span class="instruction-desc">Cannot merge for one move, then becomes normal</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">×2</span><span class="instruction-name">Multiplier</span><span class="instruction-desc">Doubles adjacent merge values, then consumed</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">⚡</span><span class="instruction-name">Fusion Core</span><span class="instruction-desc">Triples merge result when merging with equal-value tile</span></div>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Grid Zones</h3>
+              <div class="instruction-row"><span class="instruction-name">Gravity Well</span><span class="instruction-desc">Pulls tiles downward after each move</span></div>
+              <div class="instruction-row"><span class="instruction-name">Frozen Zone</span><span class="instruction-desc">Tiles locked in place, immune to slides</span></div>
+              <div class="instruction-row"><span class="instruction-name">Boost Zone</span><span class="instruction-desc">Doubles merge values within the zone</span></div>
+              <div class="instruction-row"><span class="instruction-name">Swap Zone</span><span class="instruction-desc">Allows one free tile swap per move</span></div>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Power-ups</h3>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">↩</span><span class="instruction-name">Undo</span><span class="instruction-desc">Revert the last move</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">✂</span><span class="instruction-name">Split</span><span class="instruction-desc">Split a tile into two halves</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">☢</span><span class="instruction-name">Nuke</span><span class="instruction-desc">Destroy all tiles of a chosen value</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">❄</span><span class="instruction-name">Freeze</span><span class="instruction-desc">No new tile spawns on next move</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">⇄</span><span class="instruction-name">Swap</span><span class="instruction-desc">Swap any two tiles on the grid</span></div>
+              <div class="instruction-row"><span class="instruction-icon" aria-hidden="true">⚓</span><span class="instruction-name">Stabilize</span><span class="instruction-desc">Prevent the next grid mutation</span></div>
+              <p class="instructions-note">Tap a power-up slot, then tap a tile to target it. Earn charges as you score points.</p>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Grid Mutations</h3>
+              <p>Between moves the grid may randomly shift a row, shift a column, or rotate a quadrant. Mutations become more frequent as your level increases. Use the Stabilize power-up to prevent them.</p>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Combo System</h3>
+              <p>Consecutive moves that cause merges build a streak multiplier: 2 merges = 1.5x, 3 = 2x, 4 = 3x, 5+ = 5x. Any move without a merge resets the streak.</p>
+            </div>
+            <div class="instructions-section">
+              <h3 class="instructions-heading">Game Modes</h3>
+              <div class="instruction-row"><span class="instruction-name">Classic</span><span class="instruction-desc">Reach a 2048 tile to win. All mechanics active.</span></div>
+              <div class="instruction-row"><span class="instruction-name">Endless</span><span class="instruction-desc">No win target. Play until no moves remain.</span></div>
+              <div class="instruction-row"><span class="instruction-name">Challenge</span><span class="instruction-desc">Complete specific objectives for star ratings.</span></div>
+              <div class="instruction-row"><span class="instruction-name">Daily Puzzle</span><span class="instruction-desc">Fixed-seed puzzle with 3 attempts per day.</span></div>
+            </div>
+          </div>
+          <button class="menu-back-btn" data-action="back" role="menuitem" tabindex="-1">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div aria-live="polite" id="sr-polite" class="sr-only"></div>
+  <div aria-live="assertive" id="sr-assertive" class="sr-only"></div>
+
+  <script src="js/tile.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/special_tiles.js"></script>
+  <script src="js/zones.js"></script>
+  <script src="js/mutations.js"></script>
+  <script src="js/powerups.js"></script>
+  <script src="js/combo.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/challenges.js"></script>
+  <script src="js/persistence.js"></script>
+  <script src="js/progression.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/game.js"></script>
+  <script>
+    (function () {
+      const game = new Game();
+      game.init();
+      window.__fusionGame = game;
+    })();
+  </script>
+</body>
+</html>
