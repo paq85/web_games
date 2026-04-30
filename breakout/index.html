@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Breakout - Neon Arcade</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas
+      id="game-canvas"
+      role="application"
+      aria-label="Breakout game. Use Arrow Left/Right or A/D to move paddle. Space or Enter to launch ball. Escape or P to pause. M to mute."
+      tabindex="0"
+    ></canvas>
+
+    <!-- Accessibility: aria-live regions for screen reader announcements -->
+    <div id="aria-live-polite" aria-live="polite" class="sr-only"></div>
+    <div id="aria-live-assertive" aria-live="assertive" class="sr-only"></div>
+
+    <!-- Overlay UI: Main Menu -->
+    <div id="overlay-main-menu" class="overlay" data-screen="main-menu">
+      <div class="menu-content">
+        <h1 class="game-title-neon">BREAKOUT</h1>
+        <p class="neon-subtitle">NEON ARCADE</p>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="play" aria-label="Start single player game">PLAY</button>
+          <button class="neon-btn" data-action="timed-challenge" aria-label="Start timed challenge mode">TIMED CHALLENGE</button>
+          <button class="neon-btn" data-action="settings" aria-label="Open settings">SETTINGS</button>
+          <button class="neon-btn" data-action="stats" aria-label="View statistics">STATISTICS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Pause Menu -->
+    <div id="overlay-pause" class="overlay hidden" data-screen="pause">
+      <div class="menu-content">
+        <h2 class="neon-heading">PAUSED</h2>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="resume" aria-label="Resume game">RESUME</button>
+          <button class="neon-btn" data-action="settings" aria-label="Open settings">SETTINGS</button>
+          <button class="neon-btn" data-action="quit" aria-label="Quit to main menu">QUIT TO MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Level Complete -->
+    <div id="overlay-level-complete" class="overlay hidden" data-screen="level-complete">
+      <div class="menu-content">
+        <h2 class="neon-heading">LEVEL COMPLETE!</h2>
+        <div class="level-stats">
+          <p>Score: <span id="level-score">0</span></p>
+          <p>Bricks Remaining: <span id="level-bricks">0</span></p>
+          <p>Lives: <span id="level-lives">0</span></p>
+        </div>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="next-level" aria-label="Proceed to next level">NEXT LEVEL</button>
+          <button class="neon-btn" data-action="quit" aria-label="Quit to main menu">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Game Over -->
+    <div id="overlay-game-over" class="overlay hidden" data-screen="game-over">
+      <div class="menu-content">
+        <h2 class="neon-heading" style="color: #ff4444;">GAME OVER</h2>
+        <div class="level-stats">
+          <p>Final Score: <span id="gameover-score">0</span></p>
+          <p>High Score: <span id="gameover-highscore">0</span></p>
+          <p>Level Reached: <span id="gameover-level">1</span></p>
+          <p>Win Streak: <span id="gameover-streak">0</span></p>
+        </div>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="restart" aria-label="Restart game">RESTART</button>
+          <button class="neon-btn" data-action="quit" aria-label="Quit to main menu">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Timed Challenge Results -->
+    <div id="overlay-timed-results" class="overlay hidden" data-screen="timed-results">
+      <div class="menu-content">
+        <h2 class="neon-heading">TIME'S UP!</h2>
+        <div class="level-stats">
+          <p>Bricks Destroyed: <span id="timed-bricks">0</span></p>
+          <p>Score: <span id="timed-score">0</span></p>
+          <p>Best Score: <span id="timed-best">0</span></p>
+        </div>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="timed-challenge" aria-label="Play timed challenge again">PLAY AGAIN</button>
+          <button class="neon-btn" data-action="quit" aria-label="Quit to main menu">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Settings -->
+    <div id="overlay-settings" class="overlay hidden" data-screen="settings">
+      <div class="menu-content settings-panel">
+        <h2 class="neon-heading">SETTINGS</h2>
+        <div class="settings-group">
+          <h3 class="settings-section-title">Audio</h3>
+          <label class="setting-row">
+            <span>Master Volume</span>
+            <input type="range" id="setting-master-volume" min="0" max="100" value="80" aria-label="Master volume">
+            <span class="setting-value" id="val-master-volume">80%</span>
+          </label>
+          <label class="setting-row">
+            <span>Music Volume</span>
+            <input type="range" id="setting-music-volume" min="0" max="100" value="60" aria-label="Music volume">
+            <span class="setting-value" id="val-music-volume">60%</span>
+          </label>
+          <label class="setting-row">
+            <span>SFX Volume</span>
+            <input type="range" id="setting-sfx-volume" min="0" max="100" value="80" aria-label="Sound effects volume">
+            <span class="setting-value" id="val-sfx-volume">80%</span>
+          </label>
+          <label class="setting-row checkbox">
+            <span>Mute All</span>
+            <input type="checkbox" id="setting-mute" aria-label="Mute all audio">
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3 class="settings-section-title">Gameplay</h3>
+          <label class="setting-row">
+            <span>Paddle Size</span>
+            <select id="setting-paddle-size" aria-label="Paddle size">
+              <option value="small">Small</option>
+              <option value="normal" selected>Normal</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Ball Speed</span>
+            <select id="setting-ball-speed" aria-label="Ball speed">
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
+          <label class="setting-row checkbox">
+            <span>Pause on Focus Loss</span>
+            <input type="checkbox" id="setting-pause-focus" checked aria-label="Pause when window loses focus">
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3 class="settings-section-title">Visual</h3>
+          <label class="setting-row">
+            <span>Glow Intensity</span>
+            <select id="setting-glow-intensity" aria-label="Glow intensity">
+              <option value="low">Low</option>
+              <option value="normal" selected>Normal</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="setting-row checkbox">
+            <span>Particle Effects</span>
+            <input type="checkbox" id="setting-particles" checked aria-label="Enable particle effects">
+          </label>
+          <label class="setting-row checkbox">
+            <span>Reduced Flash</span>
+            <input type="checkbox" id="setting-reduced-flash" aria-label="Reduce screen flash effects">
+          </label>
+          <label class="setting-row">
+            <span>Theme</span>
+            <select id="setting-theme" aria-label="Visual theme">
+              <option value="neon" selected>Neon</option>
+              <option value="retro">Retro</option>
+              <option value="pastel">Pastel</option>
+            </select>
+          </label>
+        </div>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="save-settings" aria-label="Save settings and return">SAVE &amp; RETURN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay UI: Statistics -->
+    <div id="overlay-stats" class="overlay hidden" data-screen="stats">
+      <div class="menu-content stats-panel">
+        <h2 class="neon-heading">STATISTICS</h2>
+        <div class="stats-grid">
+          <div class="stat-item"><span class="stat-label">Games Played</span><span class="stat-value" id="stat-games">0</span></div>
+          <div class="stat-item"><span class="stat-label">Levels Completed</span><span class="stat-value" id="stat-levels">0</span></div>
+          <div class="stat-item"><span class="stat-label">Bricks Destroyed</span><span class="stat-value" id="stat-bricks">0</span></div>
+          <div class="stat-item"><span class="stat-label">Best Level</span><span class="stat-value" id="stat-best-level">1</span></div>
+          <div class="stat-item"><span class="stat-label">Best Win Streak</span><span class="stat-value" id="stat-streak">0</span></div>
+          <div class="stat-item"><span class="stat-label">High Score</span><span class="stat-value" id="stat-highscore">0</span></div>
+          <div class="stat-item"><span class="stat-label">Timed Best Score</span><span class="stat-value" id="stat-timed-best">0</span></div>
+          <div class="stat-item"><span class="stat-label">Total Play Time</span><span class="stat-value" id="stat-playtime">0m</span></div>
+        </div>
+        <div class="menu-buttons">
+          <button class="neon-btn" data-action="quit" aria-label="Return to main menu">BACK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD overlay (visible during gameplay) -->
+    <div id="hud" class="hud hidden">
+      <div class="hud-left">
+        <span id="hud-score" aria-hidden="true">Score: 0</span>
+      </div>
+      <div class="hud-center">
+        <span id="hud-level" aria-hidden="true">Level 1</span>
+      </div>
+      <div class="hud-right">
+        <span id="hud-lives" aria-hidden="true">♥♥♥</span>
+      </div>
+      <div id="hud-timer" class="hud-timer hidden" aria-hidden="true">
+        <span>Time: 60</span>
+      </div>
+      <div id="hud-powerups" class="hud-powerups" aria-hidden="true"></div>
+    </div>
+
+    <!-- Countdown overlay -->
+    <div id="overlay-countdown" class="overlay hidden" data-screen="countdown">
+      <div class="countdown-display">
+        <span id="countdown-number">3</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

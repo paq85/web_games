@@ -16,6 +16,7 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | [Tic Tac Toe](tic_tac_toe/) | [tic_tac_toe/](tic_tac_toe/) | [Play](https://paq85.github.io/web_games/tic_tac_toe/) | Classic strategy game with local 2-player or unbeatable AI, keyboard navigation, and persistent score tracking |
 | [Snake](snake/) | [snake/](snake/) | [Play](https://paq85.github.io/web_games/snake/) | Guide the growing snake to collect food — arrow keys, WASD, or swipe on mobile, with increasing speed and persistent high scores |
 | [Fusion](fusion/) | [fusion/](fusion/) | [Play](https://paq85.github.io/web_games/fusion/) | 2048-inspired puzzle with neon sci-fi theme — special tiles, grid zones, mutations, power-ups, and combos |
+| [Breakout](breakout/) | [breakout/](breakout/) | [Play](https://paq85.github.io/web_games/breakout/) | Neon arcade brick breaker with power-ups, level progression, timed challenges, and glowing visual effects |
 
 ## Coding Info
 

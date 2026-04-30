@@ -1,0 +1,401 @@
+/* ===== CSS Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-overlay: rgba(5, 5, 20, 0.92);
+  --neon-cyan: #00ffff;
+  --neon-magenta: #ff00ff;
+  --neon-green: #00ff88;
+  --neon-orange: #ff8800;
+  --neon-yellow: #ffff00;
+  --neon-red: #ff4444;
+  --neon-blue: #4488ff;
+  --text-primary: #e0e0e0;
+  --text-dim: #888;
+  --glow-spread: 12px;
+  --glow-intensity: 0.6;
+}
+
+body {
+  font-family: 'Courier New', monospace;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===== Screen reader only ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== Game Container ===== */
+#game-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-canvas {
+  display: block;
+  background: var(--bg-primary);
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+  touch-action: none;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+#game-canvas:focus {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+/* ===== Overlays ===== */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  z-index: 10;
+  border-radius: 4px;
+}
+
+.overlay.hidden { display: none; }
+
+.menu-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ===== Neon Typography ===== */
+.game-title-neon {
+  font-size: 3.5rem;
+  color: var(--neon-cyan);
+  text-shadow:
+    0 0 10px var(--neon-cyan),
+    0 0 20px var(--neon-cyan),
+    0 0 40px var(--neon-cyan),
+    0 0 80px rgba(0, 255, 255, var(--glow-intensity));
+  letter-spacing: 8px;
+  margin-bottom: 4px;
+}
+
+.neon-subtitle {
+  font-size: 1rem;
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px var(--neon-magenta);
+  letter-spacing: 6px;
+  margin-bottom: 16px;
+}
+
+.neon-heading {
+  font-size: 2rem;
+  color: var(--neon-green);
+  text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+
+/* ===== Buttons ===== */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.neon-btn {
+  min-width: 200px;
+  min-height: 48px;
+  padding: 12px 28px;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: var(--neon-cyan);
+  background: transparent;
+  border: 2px solid var(--neon-cyan);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 0 8px var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.3), inset 0 0 8px rgba(0, 255, 255, 0.1);
+}
+
+.neon-btn:hover, .neon-btn:focus {
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 16px rgba(0, 255, 255, 0.5), inset 0 0 12px rgba(0, 255, 255, 0.2);
+  outline: none;
+}
+
+.neon-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== HUD ===== */
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 16px;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.hud.hidden { display: none; }
+
+.hud-left { color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); }
+.hud-center { color: var(--neon-cyan); text-shadow: 0 0 6px var(--neon-cyan); }
+.hud-right { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); }
+
+.hud-timer {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--neon-orange);
+  text-shadow: 0 0 6px var(--neon-orange);
+  font-size: 1.1rem;
+}
+
+.hud-powerups {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.powerup-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+}
+
+.powerup-indicator .timer-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Level Stats ===== */
+.level-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.level-stats span {
+  color: var(--neon-yellow);
+  text-shadow: 0 0 4px var(--neon-yellow);
+}
+
+/* ===== Settings Panel ===== */
+.settings-panel {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px;
+  width: 90%;
+  max-width: 420px;
+}
+
+.settings-group {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.settings-section-title {
+  font-size: 0.85rem;
+  color: var(--neon-magenta);
+  text-shadow: 0 0 6px var(--neon-magenta);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  gap: 12px;
+}
+
+.setting-row.checkbox {
+  justify-content: space-between;
+}
+
+.setting-row input[type="range"] {
+  width: 120px;
+  accent-color: var(--neon-cyan);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--neon-cyan);
+}
+
+.setting-row select {
+  background: #1a1a2e;
+  color: var(--text-primary);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  min-height: 36px;
+}
+
+.setting-value {
+  min-width: 36px;
+  text-align: right;
+  color: var(--neon-cyan);
+}
+
+/* ===== Stats Panel ===== */
+.stats-panel {
+  padding: 16px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: rgba(0, 255, 136, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.15);
+  border-radius: 4px;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  color: var(--neon-green);
+  text-shadow: 0 0 6px var(--neon-green);
+}
+
+/* ===== Countdown ===== */
+.countdown-display {
+  font-size: 8rem;
+  color: var(--neon-cyan);
+  text-shadow:
+    0 0 20px var(--neon-cyan),
+    0 0 40px var(--neon-cyan),
+    0 0 80px var(--neon-cyan);
+  font-weight: bold;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .game-title-neon, .neon-heading, .neon-btn, .countdown-display {
+    text-shadow: none;
+  }
+  .neon-btn {
+    transition: none;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .game-title-neon { font-size: 2rem; letter-spacing: 4px; }
+  .neon-heading { font-size: 1.4rem; }
+  .neon-btn { min-width: 160px; min-height: 44px; font-size: 0.85rem; }
+  .countdown-display { font-size: 5rem; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .setting-row input[type="range"] { width: 80px; }
+}
+
+@media (max-width: 400px) {
+  .game-title-neon { font-size: 1.5rem; }
+  .hud { font-size: 0.75rem; padding: 4px 8px; }
+}
+
+@media (max-width: 320px) {
+  .game-title-neon { font-size: 1.2rem; letter-spacing: 2px; }
+  .neon-heading { font-size: 1.1rem; }
+  .neon-btn { min-width: 130px; padding: 10px 16px; font-size: 0.75rem; }
+}
+
+/* ===== Theme: Retro ===== */
+body.theme-retro {
+  --neon-cyan: #00ff41;
+  --neon-magenta: #ff0000;
+  --neon-green: #00ff41;
+  --neon-orange: #ffaa00;
+  --neon-yellow: #ffff00;
+  --neon-red: #ff3333;
+  --neon-blue: #0088ff;
+}
+
+/* ===== Theme: Pastel ===== */
+body.theme-pastel {
+  --neon-cyan: #88ddff;
+  --neon-magenta: #ff88dd;
+  --neon-green: #88ffbb;
+  --neon-orange: #ffbb88;
+  --neon-yellow: #ffff88;
+  --neon-red: #ff8888;
+  --neon-blue: #8888ff;
+}
