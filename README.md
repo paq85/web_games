@@ -12,6 +12,7 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | Game | Source | Demo | Description |
 |------|--------|------|-------------|
 | [Pong](pong/) | [pong/](pong/) | [Play](https://paq85.github.io/web_games/pong/) | Pixel-retro arcade Pong with 2-player and AI modes, persistent stats, and sound effects |
+| [Pacman](pacman/) | [pacman/](pacman/) | [Play](https://paq85.github.io/web_games/pacman/) | Pacman-style maze chase with ghosts, power pellets, fruits, settings, persistence, and accessibility-first controls |
 | [Flappy Bird](flappy_bird/) | [flappy_bird/](flappy_bird/) | [Play](https://paq85.github.io/web_games/flappy_bird/) | Navigate through pipes — tap, click, or space to fly |
 | [Tic Tac Toe](tic_tac_toe/) | [tic_tac_toe/](tic_tac_toe/) | [Play](https://paq85.github.io/web_games/tic_tac_toe/) | Classic strategy game with local 2-player or unbeatable AI, keyboard navigation, and persistent score tracking |
 | [Snake](snake/) | [snake/](snake/) | [Play](https://paq85.github.io/web_games/snake/) | Guide the growing snake to collect food — arrow keys, WASD, or swipe on mobile, with increasing speed and persistent high scores |

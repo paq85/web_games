@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Pacman Arcade</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#game-canvas">Skip to game</a>
+
+  <main class="app-shell" id="app-shell">
+    <header class="topbar" aria-label="Game header">
+      <div>
+        <p class="eyebrow">PAQ85 WEB GAMES</p>
+        <h1>Pacman Arcade</h1>
+        <p class="subtitle">Pixel-retro maze chase with accessibility-first controls</p>
+      </div>
+      <div class="topbar__status" aria-live="polite" id="topbar-status">Main menu ready</div>
+    </header>
+
+    <section class="play-area" aria-label="Gameplay area">
+      <div class="stage-card">
+        <div class="hud" aria-label="Scoreboard">
+          <div class="hud__item"><span>Score</span><strong id="score-value">0</strong></div>
+          <div class="hud__item"><span>High</span><strong id="high-score-value">0</strong></div>
+          <div class="hud__item"><span>Lives</span><strong id="lives-value">3</strong></div>
+          <div class="hud__item"><span>Level</span><strong id="level-value">1</strong></div>
+          <div class="hud__item"><span>Mode</span><strong id="mode-value">Menu</strong></div>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas
+            id="game-canvas"
+            width="672"
+            height="672"
+            role="application"
+            aria-label="Pacman game board"
+            aria-describedby="game-instructions"
+            tabindex="0"
+          ></canvas>
+          <p id="game-instructions" class="sr-only">
+            Use arrow keys or WASD to move. Press Enter or Space to confirm, Escape to pause, and M to mute.
+          </p>
+          <div class="screen-message" id="screen-message" aria-live="polite">Press Play to begin.</div>
+          <div class="screen-alert sr-only" id="screen-alert" aria-live="assertive"></div>
+        </div>
+
+        <p class="help-copy">
+          Arrow keys or WASD to move. On mobile, use the on-screen pad or swipe in a direction.
+        </p>
+      </div>
+    </section>
+
+    <section class="panels" aria-label="Game menus">
+      <article class="panel panel--menu" id="main-menu" data-screen="menu" aria-labelledby="menu-title">
+        <div class="panel__header">
+          <h2 id="menu-title">Main Menu</h2>
+          <p>Pick a difficulty, then jump into the maze.</p>
+        </div>
+        <div class="panel__content">
+          <label class="field">
+            <span>Difficulty</span>
+            <select id="difficulty-select" name="difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <div class="button-row">
+            <button type="button" class="primary" data-menu-action="play">Play</button>
+            <button type="button" data-menu-action="practice">Practice</button>
+            <button type="button" data-menu-action="demo">Demo</button>
+          </div>
+          <div class="button-row button-row--secondary">
+            <button type="button" data-menu-action="settings">Settings</button>
+            <button type="button" data-menu-action="scores">High Scores</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="settings-panel" data-screen="settings" aria-labelledby="settings-title" hidden>
+        <div class="panel__header">
+          <h2 id="settings-title">Settings</h2>
+          <p>Audio, visuals, and controls are saved locally in your browser.</p>
+        </div>
+        <div class="panel__content settings-grid">
+          <label class="field field--range">
+            <span>Master volume</span>
+            <input id="master-volume" type="range" min="0" max="100" value="80">
+          </label>
+          <label class="field field--range">
+            <span>Music volume</span>
+            <input id="music-volume" type="range" min="0" max="100" value="55">
+          </label>
+          <label class="field field--range">
+            <span>SFX volume</span>
+            <input id="sfx-volume" type="range" min="0" max="100" value="80">
+          </label>
+          <label class="field field--check">
+            <input id="mute-toggle" type="checkbox">
+            <span>Mute audio</span>
+          </label>
+          <label class="field field--check">
+            <input id="reduce-motion-toggle" type="checkbox">
+            <span>Reduce motion</span>
+          </label>
+          <label class="field field--check">
+            <input id="reduce-effects-toggle" type="checkbox">
+            <span>Reduce flash and particles</span>
+          </label>
+          <label class="field field--check">
+            <input id="crt-toggle" type="checkbox" checked>
+            <span>CRT overlay</span>
+          </label>
+          <label class="field field--check">
+            <input id="practice-toggle" type="checkbox">
+            <span>Practice mode default</span>
+          </label>
+          <label class="field field--select">
+            <span>Control scheme</span>
+            <select id="control-scheme">
+              <option value="hybrid">Hybrid</option>
+              <option value="keyboard">Keyboard only</option>
+              <option value="touch">Touch first</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="panel__content bindings" id="binding-list" aria-label="Keyboard bindings"></div>
+
+        <div class="button-row">
+          <button type="button" data-menu-action="save-settings" class="primary">Save settings</button>
+          <button type="button" data-menu-action="reset-settings">Reset defaults</button>
+          <button type="button" data-menu-action="back">Back</button>
+        </div>
+      </article>
+
+      <article class="panel" id="scores-panel" data-screen="scores" aria-labelledby="scores-title" hidden>
+        <div class="panel__header">
+          <h2 id="scores-title">High Scores</h2>
+          <p>Your best local runs live here.</p>
+        </div>
+        <div class="panel__content">
+          <ol class="scores-list" id="scores-list"></ol>
+          <div class="button-row">
+            <button type="button" data-menu-action="back">Back</button>
+            <button type="button" data-menu-action="reset-scores">Clear scores</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel panel--overlay" id="pause-panel" data-screen="pause" aria-labelledby="pause-title" hidden>
+        <div class="panel__header">
+          <h2 id="pause-title">Paused</h2>
+          <p>Take a breather, then jump back into the chase.</p>
+        </div>
+        <div class="button-row">
+          <button type="button" data-menu-action="resume" class="primary">Resume</button>
+          <button type="button" data-menu-action="restart">Restart</button>
+          <button type="button" data-menu-action="settings">Settings</button>
+          <button type="button" data-menu-action="menu">Menu</button>
+        </div>
+      </article>
+
+      <article class="panel panel--overlay" id="countdown-panel" data-screen="countdown" aria-labelledby="countdown-title" hidden>
+        <div class="panel__header">
+          <h2 id="countdown-title">Get Ready</h2>
+          <p id="countdown-value" class="countdown-value">3</p>
+        </div>
+      </article>
+
+      <article class="panel panel--overlay" id="gameover-panel" data-screen="gameover" aria-labelledby="gameover-title" hidden>
+        <div class="panel__header">
+          <h2 id="gameover-title">Game Over</h2>
+          <p id="final-summary">Your run has ended.</p>
+        </div>
+        <div class="panel__content">
+          <p>Final score: <strong id="final-score">0</strong></p>
+          <p>High score: <strong id="final-high-score">0</strong></p>
+          <div class="button-row">
+            <button type="button" data-menu-action="play" class="primary">Play again</button>
+            <button type="button" data-menu-action="menu">Main menu</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="touch-controls" id="touch-controls" aria-label="Touch controls">
+      <button type="button" class="touch-controls__button touch-controls__button--up" data-touch-action="up" aria-label="Move up">▲</button>
+      <div class="touch-controls__row">
+        <button type="button" class="touch-controls__button" data-touch-action="left" aria-label="Move left">◀</button>
+        <button type="button" class="touch-controls__button touch-controls__button--center" data-touch-action="confirm" aria-label="Confirm">●</button>
+        <button type="button" class="touch-controls__button" data-touch-action="right" aria-label="Move right">▶</button>
+      </div>
+      <button type="button" class="touch-controls__button touch-controls__button--down" data-touch-action="down" aria-label="Move down">▼</button>
+      <button type="button" class="touch-controls__pause" data-touch-action="pause">Pause</button>
+    </section>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

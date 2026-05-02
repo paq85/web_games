@@ -7,6 +7,16 @@
 
 ---
 
+## 0. Provenance
+
+- Original user request: "implement the pacman game according to it's specification"
+- Follow-up request: "Start implementation"
+- Implementation choice: deliver the full specification in one pass, built as a brand-new self-contained app in `pacman/`
+- Repo integration choice: expose Pacman in the root `README.md` game list and root launcher
+- Quality choice: include dedicated unit tests, headless browser acceptance tests, and a local Node HTTP server
+
+---
+
 ## 1. Purpose
 
 This document defines the product requirements for a Pacman-style arcade game intended for desktop and mobile web browsers. It describes the required player experience, supported features, quality expectations, and acceptance criteria. The product shall deliver a polished, replayable Pacman experience that emphasizes responsive controls, readable gameplay, clear audiovisual feedback, and a distinct pixel-retro identity.
