@@ -39,8 +39,9 @@ export class ObstacleSpawner {
 
     for (let i = 0; i < count; i++) {
       const x = gap + i * (width + gap);
+      const obsId = `obs_${_idCounter++}`;
       const obs = new Obstacle({
-        id: `obs_${_idCounter++}`,
+        id: obsId,
         x,
         y,
         width,
@@ -52,9 +53,14 @@ export class ObstacleSpawner {
         isDiver: lane.isDiver || false,
       });
 
-      // Initialize turtle dive state
+      // Assign a fixed color index per obstacle so colors don't change while moving
+      obs.colorIndex = Math.abs(obsId.charCodeAt(obsId.length - 1)) % 3;
+
+      // Initialize turtle dive state — alternating lanes:
+      // Row 4 turtles start at phase 0, row 6 turtles start at phase 1.5 (half interval)
+      // so that when one lane dives, the other surfaces.
       if (lane.isDiver) {
-        obs.diveCycle = Math.random() * 3; // stagger dive timing
+        obs.diveCycle = lane.row === 4 ? 0 : 1.5;
         obs.diveInterval = 3;
         obs.isDiving = false;
       }

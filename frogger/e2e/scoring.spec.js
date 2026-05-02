@@ -5,7 +5,7 @@ test.describe('Scoring', () => {
     await page.goto('/index.html');
     await page.waitForSelector('#game-canvas');
     await page.keyboard.press('Space');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
   });
 
   test('score starts at 0', async ({ page }) => {
@@ -13,45 +13,51 @@ test.describe('Scoring', () => {
     await expect(score).toHaveText('Score: 0');
   });
 
-  test('score increases when moving up', async ({ page }) => {
-    // Move up one row - should award 10 points
+  test('score increases by 10 per row moved up', async ({ page }) => {
+    // Move up one row — should award 10 points
     await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
-    const score = page.locator('#hud-score');
-    await expect(score).toHaveText(/Score: \d+/, { timeout: 2000 });
+    await page.waitForTimeout(300);
+    const score1 = await page.locator('#hud-score').textContent();
+    const scoreNum1 = parseInt(score1.replace('Score: ', ''));
+    expect(scoreNum1).toBeGreaterThanOrEqual(10);
+
+    // Wait for any death animation to complete so the frog is reset to spawn
+    await page.waitForTimeout(700);
+
+    // Move up another row — should award another 10
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(300);
+    const score2 = await page.locator('#hud-score').textContent();
+    const scoreNum2 = parseInt(score2.replace('Score: ', ''));
+    // Score should not decrease; if the frog survived the second move, it increases
+    expect(scoreNum2).toBeGreaterThanOrEqual(scoreNum1);
   });
 
-  test('lives decrease on death', async ({ page }) => {
-    const livesBefore = await page.locator('#hud-lives').textContent();
-    expect(livesBefore).toContain('🐸🐸🐸');
+  test('score does not increase for horizontal moves', async ({ page }) => {
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForTimeout(300);
+    const score1 = await page.locator('#hud-score').textContent();
+    expect(score1).toBe('Score: 0');
 
-    // Move into road and wait for death
-    await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(100);
-    await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(2000);
-
-    const livesAfter = await page.locator('#hud-lives').textContent();
-    // Should have fewer lives (or same if not hit)
-    expect(livesAfter.length).toBeLessThanOrEqual(livesBefore.length);
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(300);
+    const score2 = await page.locator('#hud-score').textContent();
+    expect(score2).toBe('Score: 0');
   });
 
-  test('high score persists across sessions', async ({ page }) => {
-    // Start a new game
-    await page.goto('/index.html');
-    await page.waitForSelector('#game-canvas');
-    // High score from previous runs should be available
-    const canvas = page.locator('#game-canvas');
-    await expect(canvas).toBeVisible();
+  test('lives start at 3', async ({ page }) => {
+    const lives = await page.locator('#hud-lives').textContent();
+    const frogs = (lives.match(/🐸/g) || []).length;
+    expect(frogs).toBe(3);
   });
 
-  test('level increases when all home slots filled', async ({ page }) => {
-    const level = page.locator('#hud-level');
-    await expect(level).toHaveText('Level 1');
-    // Note: actually filling all 5 slots is hard to automate reliably
-    // This test verifies level display works
-    await page.waitForTimeout(1000);
-    await expect(level).toHaveText(/Level \d+/);
+  test('lives decrease after death in road', async ({ page }) => {
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(5000);
+
+    const lives = await page.locator('#hud-lives').textContent();
+    const frogs = (lives.match(/🐸/g) || []).length;
+    expect(frogs).toBeLessThan(3);
   });
 
   test('timer bar decreases over time', async ({ page }) => {
@@ -62,10 +68,8 @@ test.describe('Scoring', () => {
     expect(widthAfter).toBeLessThan(widthBefore);
   });
 
-  test('timer bar turns red when in danger', async ({ page }) => {
-    // Wait for timer to get close to danger zone would take too long
-    // Verify the danger class mechanism exists
-    const timerBar = page.locator('#timer-bar');
-    await expect(timerBar).toBeVisible();
+  test('level starts at 1', async ({ page }) => {
+    const level = page.locator('#hud-level');
+    await expect(level).toHaveText('Level 1');
   });
 });

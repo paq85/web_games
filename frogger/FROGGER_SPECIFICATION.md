@@ -42,6 +42,9 @@ Guide the frog from the bottom of the screen to the top, crossing a road full of
 - Movement is **discrete** — each input moves exactly one cell.
 - The frog cannot move beyond the playfield boundaries.
 - The frog's sprite direction changes to face the last movement direction.
+- **On a platform:** The frog rides the conveyor (log/turtle) between hops. Each hop resets the frog to the center of its grid cell, so movement is always exactly one cell relative to the platform. The frog can hop freely toward the edge of the platform.
+- **Leaving the river:** When the frog hops from a river row to a safe zone or home row, the conveyor offset is cleared so the frog lands cleanly in its grid cell without sliding.
+- **Spawn cooldown:** After a death or reaching home, there is a 1.5-second cooldown before the frog can be moved, giving the player time to see the reset and lives update.
 
 ### Road Crossing
 
@@ -62,6 +65,7 @@ Guide the frog from the bottom of the screen to the top, crossing a road full of
   - **Turtle** — carries the frog but can dive underwater
 - When the frog moves onto a platform, it rides with that platform's movement.
 - When the frog moves off a platform onto water, it drowns (instant death).
+- **Conveyor mechanics:** While on a platform, the frog drifts horizontally with the platform between hops. Each hop resets the frog's sub-cell offset to zero, centering it in the new grid cell. This ensures every hop is exactly one cell and the frog can hop freely toward the edge of the platform. When the frog hops off the river (to a safe zone or home row), the conveyor offset is cleared so the frog lands cleanly without sliding.
 - **Turtle diving:** Turtles periodically submerge (every 3 seconds, on alternating lanes). If the frog is riding a turtle when it dives, the frog dies.
 - If a platform carries the frog off the left or right edge of the screen, the frog dies.
 
@@ -285,7 +289,7 @@ Guide the frog from the bottom of the screen to the top, crossing a road full of
 requestAnimationFrame drives the render loop.
 Accumulated delta time determines game ticks.
 Each tick:
-  1. Process input (frog movement, with cooldown between inputs)
+  1. Process input (frog movement, with cooldown between inputs and spawn cooldown)
   2. Move all obstacles by their speed * delta
   3. Wrap obstacles that go off-screen
   4. Apply conveyor movement (if frog on platform)
@@ -293,15 +297,19 @@ Each tick:
   6. Check collisions (frog vs vehicles)
   7. Check river safety (frog on platform or drowning)
   8. Check home slot arrival
-  9. Update timer
-  10. Update bonus items (ladybugs, bonus goals)
-  11. Render frame
+  9. Update spawn cooldown
+  10. Update timer
+  11. Update bonus items (ladybugs, bonus goals)
+  12. Render frame
 ```
+
+**State transitions:** When the death animation completes and the game transitions back to `PLAYING`, the game loop continues via `requestAnimationFrame`. The same applies when a level completes and transitions to the next level.
 
 ### Input Cooldown
 
 - A brief cooldown (150ms) between frog inputs prevents accidental double-moves.
 - During the death animation, all input is blocked.
+- **Spawn cooldown (1.5s):** After the frog resets (from death or reaching home), movement input is blocked for 1.5 seconds. This gives the player time to see the reset and the updated lives display. Progress tracking (`lowestRow`) is also reset so the frog can earn progress points on the next attempt.
 
 ---
 
@@ -361,18 +369,6 @@ Each tick:
 
 ---
 
-## Running Locally
-
-```bash
-cd frogger
-npx serve .
-# Open http://localhost:3000/index.html
-```
-
-Or open `index.html` directly in a browser.
-
----
-
 ## Testing
 
 ### Automated Tests
@@ -418,57 +414,6 @@ npm install
 npm run test          # Unit tests
 npm run test:e2e      # Acceptance tests
 npm run test:all      # Both
-```
-
----
-
-## File Structure
-
-```
-frogger/
-├── index.html              # Entry point, canvas, HUD, embedded CSS
-├── js/
-│   ├── game.js             # Main game loop, state machine, initialization
-│   ├── frog.js             # Player class (position, movement, direction, death)
-│   ├── lane.js             # Lane configuration and definitions
-│   ├── obstacle.js         # Base obstacle class (movement, wrapping, bounds)
-│   ├── vehicle.js          # Vehicle types (car, truck, bulldozer)
-│   ├── platform.js         # Platform types (log, turtle with diving)
-│   ├── spawner.js          # Obstacle pool management per lane
-│   ├── collision.js        # AABB collision detection
-│   ├── river.js            # Conveyor system, drowning checks
-│   ├── homeslots.js        # Home slot state tracking
-│   ├── timer.js            # Countdown timer with bar rendering
-│   ├── scoring.js          # Score, high score, level progression
-│   ├── bonus.js            # Ladybugs and bonus goals
-│   ├── renderer.js         # Canvas rendering for all elements
-│   ├── input.js            # Keyboard, touch, swipe, D-pad handling
-│   └── audio.js            # Web Audio API sound effects and music
-├── assets/
-│   ├── frog.png            # Frog sprite sheet (4 directions + idle)
-│   ├── vehicles.png        # Vehicle sprite sheet (car, truck, bulldozer)
-│   ├── platforms.png       # Log and turtle sprite sheets
-│   └── effects.png         # Death splash, level complete effects
-├── tests/
-│   ├── frog.test.js
-│   ├── collision.test.js
-│   ├── river.test.js
-│   ├── homeslots.test.js
-│   ├── scoring.test.js
-│   ├── timer.test.js
-│   └── obstacle.test.js
-├── e2e/
-│   ├── game-flow.spec.js
-│   ├── controls.spec.js
-│   ├── river-mechanics.spec.js
-│   ├── road-mechanics.spec.js
-│   ├── scoring.spec.js
-│   ├── accessibility.spec.js
-│   └── responsive.spec.js
-├── package.json
-├── vitest.config.js
-├── playwright.config.js
-└── README.md
 ```
 
 ---

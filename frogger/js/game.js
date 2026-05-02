@@ -40,6 +40,7 @@ export class Game {
     this.deathTimer = 0;
     this.levelCompleteTimer = 0;
     this.timerWarningPlayed = false;
+    this.spawnCooldown = 0; // seconds — blocks movement after reset
 
     // Initialize systems
     this.frog = new Frog({ startX: 7, startY: 12 }); // grid position (0-indexed: col 7, row 12 = row 13)
@@ -75,6 +76,9 @@ export class Game {
     this.gameLoop = this.gameLoop.bind(this);
     this.resize();
     window.addEventListener('resize', () => this.resize());
+
+    // Kick off the game loop so the idle screen renders immediately
+    requestAnimationFrame(this.gameLoop);
   }
 
   /**
@@ -154,6 +158,9 @@ export class Game {
         this.renderer.drawDeathEffect();
         if (this.deathTimer >= DEATH_DURATION || this.reducedMotion) {
           this.handlePostDeath();
+          if (this.state === STATES.PLAYING) {
+            requestAnimationFrame(this.gameLoop);
+          }
         } else {
           requestAnimationFrame(this.gameLoop);
         }
@@ -165,6 +172,9 @@ export class Game {
         this.renderer.drawLevelCompleteOverlay(this.scoring.level);
         if (this.levelCompleteTimer >= 1500 || this.reducedMotion) {
           this.handleNextLevel();
+          if (this.state === STATES.PLAYING) {
+            requestAnimationFrame(this.gameLoop);
+          }
         } else {
           requestAnimationFrame(this.gameLoop);
         }
@@ -257,6 +267,11 @@ export class Game {
       this.scoring.addPoints(moveScore);
     }
 
+    // Update spawn cooldown
+    if (this.spawnCooldown > 0) {
+      this.spawnCooldown = Math.max(0, this.spawnCooldown - delta);
+    }
+
     // Update timer
     const timerExpired = this.timer.update(delta);
     if (timerExpired) {
@@ -274,7 +289,7 @@ export class Game {
     }
 
     // Update bonus system
-    this.bonus.update(delta);
+    this.bonus.update(delta, obstacles);
     this.homeSlots.updateTimers(delta);
 
     // Update HUD
@@ -323,6 +338,7 @@ export class Game {
   handleMove(direction) {
     if (this.state !== STATES.PLAYING) return;
     if (this.frog.isDead) return;
+    if (this.spawnCooldown > 0) return; // block input during spawn cooldown
 
     // Convert grid position: frog.y is 0-indexed, lanes are 1-indexed
     const gridY = this.frog.y + 1;
@@ -330,7 +346,11 @@ export class Game {
 
     if (!this.frog.move(direction, GRID_WIDTH, GRID_HEIGHT)) return;
 
+    // After any hop, reset the conveyor offset. The grid change provides the
+    // visual one-cell movement. The offset starts accumulating from 0, so the
+    // frog stays centered in its grid cell and doesn't drift off the platform.
     this.frog.resetConveyorOffset();
+
     this.audio.playHop();
 
     // Check home row after move
@@ -354,6 +374,8 @@ export class Game {
         this.frog.reset();
         this.timer.reset();
         this.timerWarningPlayed = false;
+        this.spawnCooldown = 1.5;
+        this.scoring.lowestRow = 12; // reset progress tracking for next attempt
         break;
 
       case 'bonus':
@@ -364,6 +386,8 @@ export class Game {
         this.frog.reset();
         this.timer.reset();
         this.timerWarningPlayed = false;
+        this.spawnCooldown = 1.5;
+        this.scoring.lowestRow = 12; // reset progress tracking for next attempt
         break;
 
       case 'occupied':
@@ -426,6 +450,7 @@ export class Game {
       this.frog.reset();
       this.timer.reset();
       this.timerWarningPlayed = false;
+      this.spawnCooldown = 1.5;
       this.state = STATES.PLAYING;
       this.announcePolite(`${this.scoring.lives} lives remaining`);
     }

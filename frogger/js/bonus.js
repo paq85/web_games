@@ -7,6 +7,9 @@ export class BonusSystem {
     this.bonusGoalInterval = 12; // seconds between bonus goal spawns
     this.bonusGoalTimer = 0;
     this.homeSlots = null; // set by game
+    this.ladybugSpawnInterval = 5; // seconds between ladybug spawn attempts
+    this.ladybugSpawnTimer = 0;
+    this.ladybugSpawnChance = 0.3; // low probability per attempt
   }
 
   /**
@@ -17,15 +20,44 @@ export class BonusSystem {
   }
 
   /**
-   * Update bonus goal spawning timer.
+   * Update bonus goal spawning timer and ladybug respawning.
    */
-  update(delta) {
+  update(delta, obstacles) {
     if (!this.homeSlots) return;
 
     this.bonusGoalTimer += delta;
     if (this.bonusGoalTimer >= this.bonusGoalInterval) {
       this.bonusGoalTimer = 0;
       this.homeSlots.spawnBonus();
+    }
+
+    // Periodically try to spawn ladybugs on logs
+    this.ladybugSpawnTimer += delta;
+    if (this.ladybugSpawnTimer >= this.ladybugSpawnInterval) {
+      this.ladybugSpawnTimer = 0;
+      this.trySpawnLadybug(obstacles);
+    }
+  }
+
+  /**
+   * Try to spawn a ladybug on a random log obstacle.
+   */
+  trySpawnLadybug(obstacles) {
+    if (!obstacles) return;
+
+    // Find logs without active ladybugs
+    const eligibleLogs = obstacles.filter(
+      obs => obs.type === 'log' && (!obs.ladybug || !obs.ladybug.active)
+    );
+
+    if (eligibleLogs.length === 0) return;
+
+    if (Math.random() < this.ladybugSpawnChance) {
+      const chosen = eligibleLogs[Math.floor(Math.random() * eligibleLogs.length)];
+      chosen.ladybug = {
+        active: true,
+        bobPhase: Math.random() * Math.PI * 2,
+      };
     }
   }
 

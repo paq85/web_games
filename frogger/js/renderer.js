@@ -51,6 +51,34 @@ export class Renderer {
     this.levelCompleteStartTime = 0;
     this.idleAnimPhase = 0;
     this.reducedMotion = false;
+
+    // Sprite sheet images
+    this.sprites = {};
+    this.loadSprites();
+  }
+
+  /**
+   * Load sprite sheet images from assets/.
+   */
+  loadSprites() {
+    const sheets = ['frog', 'vehicles', 'platforms', 'effects'];
+    for (const name of sheets) {
+      const img = new Image();
+      img.src = `./assets/${name}.png`;
+      img.onload = () => {
+        this.sprites[name] = img;
+      };
+    }
+  }
+
+  /**
+   * Draw a sprite from a sheet.
+   */
+  drawSprite(sheetName, sx, sy, sw, sh, dx, dy, dw, dh) {
+    const img = this.sprites[sheetName];
+    if (!img) return false;
+    this.ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    return true;
   }
 
   /**
@@ -59,14 +87,14 @@ export class Renderer {
   resize(maxWidth, maxHeight) {
     const ctx = this.ctx;
 
-    // Get the container size
-    const container = this.canvas.parentElement || document.body;
-    const containerWidth = Math.min(maxWidth, container.clientWidth - 20);
-    const containerHeight = Math.min(maxHeight, container.clientHeight - 120);
+    // Use window-constrained dimensions directly (avoid container.clientHeight
+    // which is unreliable before the canvas has content).
+    const width = maxWidth;
+    const height = maxHeight;
 
     // Calculate cell size to fit 15 columns
-    const cellSize = Math.floor(containerWidth / 15);
-    this.cellSize = Math.max(20, Math.min(cellSize, Math.floor(containerHeight / 13)));
+    const cellSize = Math.floor(width / 15);
+    this.cellSize = Math.max(20, Math.min(cellSize, Math.floor(height / 13)));
 
     this.canvasWidth = this.cellSize * 15;
     this.canvasHeight = this.cellSize * 13;
@@ -200,11 +228,11 @@ export class Renderer {
       switch (obs.type) {
         case 'car':
           this.drawCar(bounds.x + padding, bounds.y + padding,
-            bounds.width - padding * 2, bounds.height - padding * 2);
+            bounds.width - padding * 2, bounds.height - padding * 2, obs.colorIndex);
           break;
         case 'truck':
           this.drawTruck(bounds.x + padding, bounds.y + padding,
-            bounds.width - padding * 2, bounds.height - padding * 2);
+            bounds.width - padding * 2, bounds.height - padding * 2, obs.colorIndex);
           break;
         case 'bulldozer':
           this.drawBulldozer(bounds.x + padding, bounds.y + padding,
@@ -235,10 +263,10 @@ export class Renderer {
   /**
    * Draw a car.
    */
-  drawCar(x, y, w, h) {
+  drawCar(x, y, w, h, colorIndex) {
     const ctx = this.ctx;
     const colors = [COLORS.car1, COLORS.car2, COLORS.car3];
-    ctx.fillStyle = colors[Math.floor(Math.abs(x) / 100) % 3];
+    ctx.fillStyle = colors[colorIndex % 3];
     this.roundRect(x, y, w, h, h * 0.25);
     ctx.fill();
     // Windshield
@@ -255,10 +283,10 @@ export class Renderer {
   /**
    * Draw a truck.
    */
-  drawTruck(x, y, w, h) {
+  drawTruck(x, y, w, h, colorIndex) {
     const ctx = this.ctx;
     const colors = [COLORS.truck1, COLORS.truck2];
-    ctx.fillStyle = colors[Math.floor(Math.abs(x) / 150) % 2];
+    ctx.fillStyle = colors[colorIndex % 2];
     this.roundRect(x, y, w, h, h * 0.2);
     ctx.fill();
     // Cab
@@ -409,8 +437,16 @@ export class Renderer {
 
   /**
    * Draw a frog sprite at given position.
+   * Uses frog.png sprite sheet (32x128, 4 directions stacked vertically).
    */
   drawFrogSprite(cx, cy, size, direction, color) {
+    // Try sprite sheet first
+    const dirIndex = { up: 0, right: 1, down: 2, left: 3 }[direction] ?? 0;
+    if (this.drawSprite('frog', 0, dirIndex * 32, 32, 32, cx - size / 2, cy - size / 2, size, size)) {
+      return;
+    }
+
+    // Fallback: procedural drawing
     const ctx = this.ctx;
     const s = size * 0.8;
     const half = s / 2;

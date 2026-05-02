@@ -55,10 +55,10 @@ export class Scoring {
 
   /**
    * Score time bonus when reaching home or on death.
-   * 1 point per 10 ticks (1 second = 10 ticks).
+   * 1 point per 10 ticks (at 60fps: 60 ticks/sec, so 6 pts/sec).
    */
   scoreTimeBonus(timer) {
-    const bonus = Math.floor(timer.timeLeft * 10);
+    const bonus = Math.floor(timer.timeLeft * 60 / 10);
     if (bonus > 0) {
       this.score += bonus;
     }
