@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pac-Man | PAQ85 Web Games</title>
+  <meta name="description" content="Pixel-retro Pac-Man style arcade game with accessibility options, mobile touch controls, and persistent progression.">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div id="app-shell" class="app-shell theme-classic">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">PAQ85 WEB GAMES</p>
+        <h1>Pac-Man</h1>
+        <p id="status-banner" class="status-banner">Collect every pellet, outsmart the ghosts, and keep the retro glow alive.</p>
+      </div>
+      <button id="mute-button" class="ghost-button" type="button" data-testid="mute-button" aria-pressed="false">Mute (M)</button>
+    </header>
+
+    <main class="app-layout">
+      <section class="play-column" aria-label="Game area and HUD">
+        <div class="hud-panel" data-testid="hud-panel">
+          <div class="hud-item">
+            <span class="hud-label">Score</span>
+            <strong id="score-value" data-testid="score-value">0</strong>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">Lives</span>
+            <strong id="lives-value" data-testid="lives-value">3</strong>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">Level</span>
+            <strong id="level-value" data-testid="level-value">1</strong>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">Mode</span>
+            <strong id="mode-value" data-testid="mode-value">Menu</strong>
+          </div>
+          <div class="hud-item hud-item--wide">
+            <span class="hud-label">Power timer</span>
+            <div class="meter" aria-hidden="true">
+              <div id="power-timer-fill" class="meter-fill"></div>
+            </div>
+            <span id="power-timer-text" class="meter-text">Ready</span>
+          </div>
+          <div class="hud-item hud-item--wide">
+            <span class="hud-label">Streak</span>
+            <strong id="streak-value" data-testid="streak-value">0</strong>
+          </div>
+        </div>
+
+        <div class="stage-shell">
+          <canvas
+            id="game-canvas"
+            data-testid="game-canvas"
+            width="672"
+            height="744"
+            role="application"
+            aria-label="Pac-Man maze gameplay area. Use arrow keys or WASD to move Pac-Man, Escape to pause, and M to mute."
+            tabindex="0"
+          ></canvas>
+
+          <div id="entry-overlay" class="stage-overlay stage-overlay--visible" data-testid="entry-overlay">
+            <div class="overlay-card overlay-card--centered">
+              <p class="eyebrow">ARCADE ENTRY</p>
+              <h2>Ready for the maze?</h2>
+              <p>Press <kbd>Enter</kbd>, <kbd>Space</kbd>, or tap to jump into the main menu. The game opens to the menu every time — no half-chewed pellets left behind.</p>
+              <button id="entry-button" class="primary-button" type="button" data-testid="entry-button">Enter Arcade</button>
+            </div>
+          </div>
+
+          <div id="difficulty-overlay" class="stage-overlay" aria-hidden="true">
+            <div class="overlay-card">
+              <p class="eyebrow">CHOOSE YOUR CHALLENGE</p>
+              <h2>Select difficulty</h2>
+              <div class="difficulty-grid" role="group" aria-label="Difficulty selection">
+                <button class="difficulty-button" type="button" data-difficulty="easy" data-testid="difficulty-easy">
+                  <strong>Easy</strong>
+                  <span>Slower ghosts and longer frightened windows.</span>
+                </button>
+                <button class="difficulty-button" type="button" data-difficulty="medium" data-testid="difficulty-medium">
+                  <strong>Medium</strong>
+                  <span>The arcade-flavored default balance.</span>
+                </button>
+                <button class="difficulty-button" type="button" data-difficulty="hard" data-testid="difficulty-hard">
+                  <strong>Hard</strong>
+                  <span>Sharper ghosts, faster pace, fewer freebies.</span>
+                </button>
+              </div>
+              <button id="difficulty-cancel" class="ghost-button" type="button">Back to menu</button>
+            </div>
+          </div>
+
+          <div id="pause-overlay" class="stage-overlay" aria-hidden="true">
+            <div class="overlay-card">
+              <p class="eyebrow">GAME PAUSED</p>
+              <h2>Catch your breath</h2>
+              <div class="stacked-actions">
+                <button id="resume-button" class="primary-button" type="button" data-testid="resume-button">Resume</button>
+                <button id="restart-button" class="ghost-button" type="button" data-testid="restart-button">Restart run</button>
+                <button id="pause-settings-button" class="ghost-button" type="button">Settings</button>
+                <button id="quit-button" class="ghost-button" type="button">Quit to menu</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="game-over-overlay" class="stage-overlay" aria-hidden="true">
+            <div class="overlay-card">
+              <p class="eyebrow">GAME OVER</p>
+              <h2 id="game-over-heading">The ghosts got the last laugh.</h2>
+              <p id="game-over-summary">Final score: 0</p>
+              <div class="stacked-actions">
+                <button id="play-again-button" class="primary-button" type="button" data-testid="play-again-button">Play again</button>
+                <button id="game-over-menu-button" class="ghost-button" type="button">Main menu</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="level-complete-overlay" class="stage-overlay" aria-hidden="true">
+            <div class="overlay-card overlay-card--compact">
+              <p class="eyebrow">LEVEL CLEAR</p>
+              <h2>Maze complete!</h2>
+              <p id="level-complete-summary">Get ready for the next round.</p>
+            </div>
+          </div>
+
+          <div id="countdown-overlay" class="countdown-overlay" aria-hidden="true" data-testid="countdown-overlay">3</div>
+          <div id="demo-banner" class="demo-banner" aria-hidden="true">DEMO MODE — press any button to take over</div>
+          <button id="pause-button" class="icon-button" type="button" data-testid="pause-button">Pause</button>
+        </div>
+
+        <div class="caption-bar" aria-live="polite" aria-atomic="true">
+          <span class="caption-label">Sound cue</span>
+          <strong id="caption-text" data-testid="caption-text">Menu ready.</strong>
+        </div>
+
+        <div class="touch-controls" id="touch-controls" data-testid="touch-controls" aria-label="Touch controls">
+          <button class="touch-button touch-button--up" type="button" data-direction="up" aria-label="Move up">▲</button>
+          <button class="touch-button touch-button--left" type="button" data-direction="left" aria-label="Move left">◀</button>
+          <button class="touch-button touch-button--down" type="button" data-direction="down" aria-label="Move down">▼</button>
+          <button class="touch-button touch-button--right" type="button" data-direction="right" aria-label="Move right">▶</button>
+        </div>
+      </section>
+
+      <aside class="sidebar" aria-label="Menus, settings, and progress panels">
+        <section id="menu-panel" class="panel panel--visible" data-panel="menu" data-testid="menu-panel">
+          <p class="eyebrow">MAIN MENU</p>
+          <h2>Choose a mode</h2>
+          <div class="stacked-actions">
+            <button id="start-game-button" class="primary-button" type="button" data-testid="start-game-button">Start game</button>
+            <button id="practice-button" class="ghost-button" type="button" data-testid="practice-button">Practice mode</button>
+            <button id="tutorial-button" class="ghost-button" type="button">Tutorial</button>
+            <button id="scores-button" class="ghost-button" type="button" data-testid="scores-button">High scores</button>
+            <button id="settings-button" class="ghost-button" type="button" data-testid="settings-button">Settings</button>
+            <button id="demo-button" class="ghost-button" type="button" data-testid="demo-button">Attract / demo mode</button>
+          </div>
+          <div class="info-card">
+            <h3>Quick tips</h3>
+            <ul>
+              <li>Use the arrow keys or WASD to queue turns.</li>
+              <li>Power pellets turn ghosts blue and vulnerable.</li>
+              <li>Practice mode gives unlimited lives and slower pacing.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="settings-panel" class="panel" data-panel="settings" aria-hidden="true" data-testid="settings-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">SETTINGS</p>
+              <h2>Tune the cabinet</h2>
+            </div>
+            <button id="settings-back-button" class="ghost-button ghost-button--compact" type="button">Back</button>
+          </div>
+
+          <form id="settings-form" class="settings-form">
+            <label>
+              <span>Preferred difficulty</span>
+              <select id="difficulty-select" name="difficulty" data-testid="difficulty-select">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Theme</span>
+              <select id="theme-select" name="theme" data-testid="theme-select">
+                <option value="classic">Classic arcade</option>
+                <option value="neon">Neon grid</option>
+                <option value="amber">Amber terminal</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Control scheme</span>
+              <select id="control-scheme-select" name="controlScheme">
+                <option value="auto">Auto detect</option>
+                <option value="keyboard">Keyboard only</option>
+                <option value="touch">Touch friendly</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Master volume</span>
+              <input id="master-volume-input" type="range" min="0" max="100" value="80" data-testid="master-volume-input">
+              <output id="master-volume-output">80%</output>
+            </label>
+
+            <label>
+              <span>Music volume</span>
+              <input id="music-volume-input" type="range" min="0" max="100" value="60">
+              <output id="music-volume-output">60%</output>
+            </label>
+
+            <label>
+              <span>Effects volume</span>
+              <input id="sfx-volume-input" type="range" min="0" max="100" value="85">
+              <output id="sfx-volume-output">85%</output>
+            </label>
+
+            <label>
+              <span>Practice speed</span>
+              <input id="practice-speed-input" type="range" min="40" max="100" value="70">
+              <output id="practice-speed-output">70%</output>
+            </label>
+
+            <label class="toggle-row">
+              <input id="mute-toggle-input" type="checkbox">
+              <span>Mute audio immediately</span>
+            </label>
+            <label class="toggle-row">
+              <input id="crt-toggle-input" type="checkbox" checked>
+              <span>CRT overlay</span>
+            </label>
+            <label class="toggle-row">
+              <input id="screen-shake-toggle-input" type="checkbox" checked>
+              <span>Screen shake</span>
+            </label>
+            <label class="toggle-row">
+              <input id="particles-toggle-input" type="checkbox" checked>
+              <span>Particles</span>
+            </label>
+            <label class="toggle-row">
+              <input id="reduced-flash-toggle-input" type="checkbox">
+              <span>Reduced flash / reduced effects</span>
+            </label>
+
+            <fieldset class="binding-fieldset">
+              <legend>Keyboard bindings</legend>
+              <div class="binding-list">
+                <div class="binding-row"><span>Move up</span><button type="button" class="binding-button" data-bind-action="up" data-testid="bind-up-button">ArrowUp / W</button></div>
+                <div class="binding-row"><span>Move down</span><button type="button" class="binding-button" data-bind-action="down">ArrowDown / S</button></div>
+                <div class="binding-row"><span>Move left</span><button type="button" class="binding-button" data-bind-action="left">ArrowLeft / A</button></div>
+                <div class="binding-row"><span>Move right</span><button type="button" class="binding-button" data-bind-action="right">ArrowRight / D</button></div>
+                <div class="binding-row"><span>Pause</span><button type="button" class="binding-button" data-bind-action="pause">Escape</button></div>
+                <div class="binding-row"><span>Mute</span><button type="button" class="binding-button" data-bind-action="mute">M</button></div>
+                <div class="binding-row"><span>Confirm</span><button type="button" class="binding-button" data-bind-action="confirm">Enter / Space</button></div>
+              </div>
+              <p id="binding-hint" class="binding-hint">Choose a binding button, then press a new key.</p>
+            </fieldset>
+          </form>
+        </section>
+
+        <section id="scores-panel" class="panel" data-panel="scores" aria-hidden="true" data-testid="scores-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">HALL OF FAME</p>
+              <h2>High scores and progression</h2>
+            </div>
+            <button id="scores-back-button" class="ghost-button ghost-button--compact" type="button">Back</button>
+          </div>
+
+          <table class="scores-table" aria-label="High scores table" data-testid="scores-table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Score</th>
+                <th scope="col">Level</th>
+                <th scope="col">Mode</th>
+              </tr>
+            </thead>
+            <tbody id="scores-body"></tbody>
+          </table>
+
+          <div class="stats-grid" id="stats-grid"></div>
+
+          <div class="info-card">
+            <h3>Achievements</h3>
+            <ul id="achievement-list" class="achievement-list"></ul>
+          </div>
+        </section>
+
+        <section id="tutorial-panel" class="panel" data-panel="tutorial" aria-hidden="true">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">TUTORIAL</p>
+              <h2>Learn the maze</h2>
+            </div>
+            <button id="tutorial-back-button" class="ghost-button ghost-button--compact" type="button">Back</button>
+          </div>
+
+          <div class="info-card">
+            <h3>How to play</h3>
+            <ol>
+              <li>Collect every pellet in the maze to clear the level.</li>
+              <li>Use power pellets to frighten ghosts, then eat them for a growing score chain.</li>
+              <li>Grab bonus fruit before it disappears for extra points.</li>
+              <li>Warp tunnels on the left and right edges wrap you across the maze.</li>
+              <li>Pause any time, adjust settings, and use practice mode if you want unlimited lives.</li>
+            </ol>
+          </div>
+
+          <div class="info-card">
+            <h3>Accessibility shortcuts</h3>
+            <ul>
+              <li>Keyboard-only play is fully supported.</li>
+              <li>Live announcements call out score changes and critical events.</li>
+              <li>Reduced flash and reduced motion options keep the maze calmer.</li>
+              <li>Touch controls stay visible and large enough for mobile play.</li>
+            </ul>
+          </div>
+
+          <div class="stacked-actions">
+            <button id="tutorial-start-button" class="primary-button" type="button">Start guided practice</button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <div id="polite-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <div id="assertive-live-region" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

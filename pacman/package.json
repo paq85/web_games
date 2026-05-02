@@ -1,0 +1,21 @@
+{
+  "name": "paq85-pacman",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pixel-retro Pac-Man style arcade game for desktop and mobile browsers.",
+  "scripts": {
+    "start": "node dev-server.js",
+    "start:test": "node dev-server.js --port 4173 --silent",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "verify": "npm run test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.4"
+  }
+}

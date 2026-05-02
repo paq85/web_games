@@ -4,6 +4,7 @@
 > **Target platform:** Desktop and mobile web browsers
 > **Game mode:** Single-player arcade experience
 > **Visual direction:** Pixel-retro arcade presentation with modern polish
+> **Implementation decisions:** Full specification targeted in the first release, automatic level progression only, and no persistence of in-progress runs across browser restarts
 
 ---
 
@@ -78,7 +79,7 @@ The game shall provide the following user-visible screens or states:
 - **Initial entry experience** that leads to the main menu
 - **Main menu** with access to play, settings, high scores, and attract/demo mode
 - **Difficulty selection** for multiple challenge levels (Easy, Medium, Hard)
-- **Level selection** or automatic progression through maze designs
+- **Automatic level progression** through maze designs
 - **Pre-level countdown** before gameplay begins
 - **Active gameplay** with real-time maze navigation
 - **Pause menu** available during play
@@ -257,13 +258,15 @@ Ghost states:
 
 - Saved settings shall be restored when game is reopened
 - Game shall open to main menu rather than resuming partial gameplay
-- Cumulative statistics shall persist across sessions:
+- Cumulative statistics and meta progression shall persist across sessions:
   - High score (all-time best)
-  - Current session score
-  - Levels completed
-  - Lives remaining
-  - Ghosts eaten count
-  - Bonus fruits collected
+  - Total levels completed
+  - Best level reached
+  - Total ghosts eaten count
+  - Total bonus fruits collected
+  - Best streak or milestone progress
+  - Unlocked achievements and cosmetic/theme preferences
+- Current run state, including the active score and remaining lives of an unfinished game, shall not be restored after a browser restart
 
 ### 4.8 Replayability features
 
@@ -403,6 +406,7 @@ The product shall include comprehensive accessibility support appropriate to an 
 - [ ] Settings persist across browser sessions
 - [ ] High scores are saved and displayed correctly
 - [ ] Game opens to main menu, not resumed gameplay
+- [ ] Automatic level progression advances correctly without a manual level-select requirement
 - [ ] Restart functionality provides fresh game state
 - [ ] Attract/demo mode shows gameplay when idle
 - [ ] Practice mode available with unlimited lives
