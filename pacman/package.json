@@ -1,16 +1,19 @@
 {
   "name": "pacman",
   "version": "1.0.0",
+  "description": "Pacman-style arcade game with pixel-retro presentation",
+  "private": true,
   "type": "module",
-  "description": "Pacman web game",
   "scripts": {
-    "serve": "npx http-server . -p 8080 -o",
-    "test": "node tests/unit/game_logic.test.js",
-    "test:e2e": "playwright test --config=tests/playwright.config.js",
-    "postinstall": "playwright install chromium"
+    "start": "node dev-server.js",
+    "start:test": "node dev-server.js --port 3009",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "npx playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "http-server": "^14.1.1"
+    "vitest": "^3.1.1",
+    "jsdom": "^26.0.0",
+    "@playwright/test": "^1.52.0"
   }
 }
