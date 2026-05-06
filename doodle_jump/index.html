@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Doodle Jump</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" role="application" aria-label="Doodle Jump game - use Arrow keys or A/D to move, ESC or P to pause, M to mute" tabindex="0"></canvas>
+
+    <!-- Touch control zones for mobile -->
+    <div id="touch-controls">
+      <div class="touch-zone left" aria-hidden="true"></div>
+      <div class="touch-zone right" aria-hidden="true"></div>
+    </div>
+
+    <!-- UI overlays -->
+    <div id="ui-overlay">
+      <!-- HUD -->
+      <div id="hud" class="hidden">
+        <div id="score-display">Score: 0</div>
+        <div id="powerup-indicators"></div>
+        <button id="pause-btn" class="hud-btn" aria-label="Pause game">II</button>
+      </div>
+
+      <!-- Main Menu -->
+      <div id="main-menu" class="menu-screen">
+        <h1 class="game-title">Doodle Jump</h1>
+        <div class="menu-buttons">
+          <button id="btn-play" class="menu-btn" aria-label="Play game">Play</button>
+          <button id="btn-highscores" class="menu-btn" aria-label="View high scores">High Scores</button>
+          <button id="btn-settings" class="menu-btn" aria-label="Open settings">Settings</button>
+        </div>
+        <div class="menu-footer">Arrow keys / WASD to move | ESC to pause</div>
+      </div>
+
+      <!-- Countdown -->
+      <div id="countdown" class="menu-screen hidden">
+        <div class="countdown-number">3</div>
+      </div>
+
+      <!-- Pause Menu -->
+      <div id="pause-menu" class="menu-screen hidden">
+        <h2>Paused</h2>
+        <div class="menu-buttons">
+          <button id="btn-resume" class="menu-btn" aria-label="Resume game">Resume</button>
+          <button id="btn-pause-settings" class="menu-btn" aria-label="Open settings">Settings</button>
+          <button id="btn-pause-quit" class="menu-btn" aria-label="Quit to menu">Quit to Menu</button>
+        </div>
+      </div>
+
+      <!-- Game Over -->
+      <div id="game-over" class="menu-screen hidden">
+        <h2>Game Over</h2>
+        <div id="game-over-score" class="score-display">Score: 0</div>
+        <div id="game-over-highscore" class="highscore-display">Best: 0</div>
+        <div id="new-highscore-msg" class="new-highscore hidden">New High Score!</div>
+        <div class="menu-buttons">
+          <button id="btn-rematch" class="menu-btn" aria-label="Play again">Rematch</button>
+          <button id="btn-go-menu" class="menu-btn" aria-label="Go to main menu">Main Menu</button>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div id="settings-menu" class="menu-screen hidden">
+        <h2>Settings</h2>
+        <div class="settings-panel">
+          <div class="setting-row">
+            <label for="master-volume">Master Volume</label>
+            <input type="range" id="master-volume" min="0" max="100" value="80" aria-label="Master volume">
+            <span id="master-volume-val">80%</span>
+          </div>
+          <div class="setting-row">
+            <label for="music-volume">Music Volume</label>
+            <input type="range" id="music-volume" min="0" max="100" value="70" aria-label="Music volume">
+            <span id="music-volume-val">70%</span>
+          </div>
+          <div class="setting-row">
+            <label for="sfx-volume">Sound Effects Volume</label>
+            <input type="range" id="sfx-volume" min="0" max="100" value="80" aria-label="Sound effects volume">
+            <span id="sfx-volume-val">80%</span>
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="mute-checkbox"> Mute
+            </label>
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="reduced-motion"> Reduced Motion
+            </label>
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="reduced-effects"> Reduced Effects
+            </label>
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="paper-texture"> Paper Texture
+            </label>
+          </div>
+          <div class="setting-row controls-row">
+            <span>Left: ArrowLeft / A</span>
+            <button id="rebind-left" class="rebind-btn" aria-label="Rebind left key">Change</button>
+          </div>
+          <div class="setting-row controls-row">
+            <span>Right: ArrowRight / D</span>
+            <button id="rebind-right" class="rebind-btn" aria-label="Rebind right key">Change</button>
+          </div>
+          <div class="setting-row controls-row">
+            <span>Pause: Escape / P</span>
+            <button id="rebind-pause" class="rebind-btn" aria-label="Rebind pause key">Change</button>
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-settings-back" class="menu-btn" aria-label="Back to menu">Back</button>
+        </div>
+      </div>
+
+      <!-- High Scores -->
+      <div id="highscores-menu" class="menu-screen hidden">
+        <h2>High Scores</h2>
+        <div id="highscores-list" class="scores-list" role="list" aria-label="High scores list"></div>
+        <div id="stats-section" class="stats-section">
+          <h3>Your Stats</h3>
+          <div id="player-stats" class="player-stats"></div>
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-hs-back" class="menu-btn" aria-label="Back to menu">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility: live regions for announcements -->
+  <div id="announcer" aria-live="polite" class="sr-only" role="status"></div>
+  <div id="urgent-announcer" aria-live="assertive" class="sr-only" role="alert"></div>
+
+  <!-- Mute indicator -->
+  <div id="mute-indicator" class="hidden" aria-hidden="true">MUTED</div>
+
+  <script type="module">
+    import { setupGame } from './js/main.js';
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupGame);
+    } else {
+      setupGame();
+    }
+  </script>
+</body>
+</html>
