@@ -17,6 +17,9 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | [Snake](snake/) | [snake/](snake/) | [Play](https://paq85.github.io/web_games/snake/) | Guide the growing snake to collect food — arrow keys, WASD, or swipe on mobile, with increasing speed and persistent high scores |
 | [Fusion](fusion/) | [fusion/](fusion/) | [Play](https://paq85.github.io/web_games/fusion/) | 2048-inspired puzzle with neon sci-fi theme — special tiles, grid zones, mutations, power-ups, and combos |
 | [Breakout](breakout/) | [breakout/](breakout/) | [Play](https://paq85.github.io/web_games/breakout/) | Neon arcade brick breaker with power-ups, level progression, timed challenges, and glowing visual effects |
+| [Tetris](tetris/) | [tetris/](tetris/) | [Play](https://paq85.github.io/web_games/tetris/) | Classic block-stacking puzzle — rotate, shift, and drop falling pieces to clear lines |
+| [Pac-Man](pacman/) | [pacman/](pacman/) | [Play](https://paq85.github.io/web_games/pacman/) | Navigate the maze, eat dots, and avoid ghosts — power pellets let you turn the tables |
+| [Frogger](frogger/) | [frogger/](frogger/) | [Play](https://paq85.github.io/web_games/frogger/) | Guide your frog across busy roads and rivers — dodge cars and hop on logs |
 
 ## Coding Info
 

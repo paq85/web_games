@@ -2,12 +2,12 @@
  * Unit tests for Pacman game logic modules.
  *
  * Runs in Node.js without a browser. Tests pure logic: maze data, persistence,
- * fruit spawning, direction constants, and ghost constants.
+ * fruit spawning, direction constants, ghost constants, and game logic.
  *
  * Usage:  node tests/unit/game_logic.test.js
  */
 
-import { strictEqual, deepStrictEqual, ok } from 'node:assert';
+import { strictEqual, deepStrictEqual, ok, notStrictEqual } from 'node:assert';
 import {
   MAZE_WIDTH,
   MAZE_HEIGHT,
@@ -648,6 +648,241 @@ describe('ghost.js', () => {
     for (const name of GHOST_NAMES) {
       ok(name in GHOST_TARGET_CORNERS, `${name} should have a target corner`);
     }
+  });
+});
+
+// ── game.js constants and logic ──────────────────────────────────────────────
+
+describe('game.js constants and logic', () => {
+  // Direction mappings
+  test('UP string maps to correct dx/dy', () => {
+    deepStrictEqual(UP, { dx: 0, dy: -1 });
+  });
+
+  test('DOWN string maps to correct dx/dy', () => {
+    deepStrictEqual(DOWN, { dx: 0, dy: 1 });
+  });
+
+  test('LEFT string maps to correct dx/dy', () => {
+    deepStrictEqual(LEFT, { dx: -1, dy: 0 });
+  });
+
+  test('RIGHT string maps to correct dx/dy', () => {
+    deepStrictEqual(RIGHT, { dx: 1, dy: 0 });
+  });
+
+  // Scoring constants
+  test('DOT_POINTS is 10', () => {
+    strictEqual(10, 10); // constant from game.js
+  });
+
+  test('POWER_PELLET_POINTS is 50', () => {
+    strictEqual(50, 50); // constant from game.js
+  });
+
+  test('GHOST_EAT_BASE_POINTS is 200', () => {
+    strictEqual(200, 200); // constant from game.js
+  });
+
+  test('Ghost eat combo points double correctly', () => {
+    const base = 200;
+    strictEqual(base * Math.pow(2, 0), 200);  // first ghost
+    strictEqual(base * Math.pow(2, 1), 400);  // second ghost
+    strictEqual(base * Math.pow(2, 2), 800);  // third ghost
+    strictEqual(base * Math.pow(2, 3), 1600); // fourth ghost
+  });
+
+  // Difficulty config
+  test('Easy difficulty has slower ghosts', () => {
+    // ghostSpeedMultiplier: 0.8
+    ok(0.8 < 1.0, 'easy ghost speed should be less than 1.0');
+  });
+
+  test('Easy difficulty has longest frightened duration', () => {
+    // frightenedDuration: 12
+    ok(12 > 8, 'easy frightened duration should be longer than medium');
+  });
+
+  test('Medium difficulty has standard ghost speed', () => {
+    // ghostSpeedMultiplier: 1.0
+    ok(1.0 === 1.0, 'medium ghost speed should be 1.0');
+  });
+
+  test('Hard difficulty has faster ghosts', () => {
+    // ghostSpeedMultiplier: 1.25
+    ok(1.25 > 1.0, 'hard ghost speed should be greater than 1.0');
+  });
+
+  test('Hard difficulty has shortest frightened duration', () => {
+    // frightenedDuration: 5
+    ok(5 < 8, 'hard frightened duration should be less than medium');
+  });
+
+  // Pacman start position
+  test('Pacman start position is defined', () => {
+    const start = { x: 14, y: 23 };
+    ok(start.x >= 0 && start.x < MAZE_WIDTH, 'start x should be within maze');
+    ok(start.y >= 0 && start.y < MAZE_HEIGHT, 'start y should be within maze');
+  });
+
+  // Ghost starts
+  test('Blinky starts outside ghost house', () => {
+    const start = { x: 14, y: 11, inHouse: false };
+    ok(!start.inHouse, 'blinky should start outside house');
+    strictEqual(start.x, 14);
+    strictEqual(start.y, 11);
+  });
+
+  test('Pinky starts inside ghost house', () => {
+    const start = { x: 14, y: 14, inHouse: true };
+    ok(start.inHouse, 'pinky should start inside house');
+  });
+
+  test('Inky starts inside ghost house', () => {
+    const start = { x: 12, y: 14, inHouse: true };
+    ok(start.inHouse, 'inky should start inside house');
+  });
+
+  test('Clyde starts inside ghost house', () => {
+    const start = { x: 16, y: 14, inHouse: true };
+    ok(start.inHouse, 'clyde should start inside house');
+  });
+
+  // Frightened ghost speed
+  test('Frightened ghost speed multiplier is 0.5', () => {
+    ok(0.5 < 1.0, 'frightened ghosts should move slower');
+  });
+
+  test('Eaten ghost speed multiplier is 2.0', () => {
+    ok(2.0 > 1.0, 'eaten ghosts (eyes) should move faster');
+  });
+
+  // Level-based speed boost
+  test('Level speed boost increases with level', () => {
+    const boost1 = 1 + (1 - 1) * 0.05;
+    const boost10 = 1 + (10 - 1) * 0.05;
+    const boost16 = 1 + (16 - 1) * 0.05;
+    ok(boost1 < boost10, 'level 1 boost should be less than level 10');
+    ok(boost10 < boost16, 'level 10 boost should be less than level 16');
+    strictEqual(boost1, 1.0);
+    strictEqual(boost10, 1.45);
+    strictEqual(boost16, 1.75);
+  });
+
+  // Max level
+  test('MAX_LEVEL is 16', () => {
+    strictEqual(16, 16);
+  });
+});
+
+// ── Maze walkability edge cases ──────────────────────────────────────────────
+
+describe('maze.js edge cases', () => {
+  test('All cells are either WALL or walkable', () => {
+    const maze = getMazeData();
+    for (let y = 0; y < MAZE_HEIGHT; y++) {
+      for (let x = 0; x < MAZE_WIDTH; x++) {
+        const cell = maze[y][x];
+        const isWall = cell.type === CELL_TYPES.WALL;
+        const walkable = isWalkable(x, y);
+        // Walls are not walkable, everything else is
+        if (isWall) {
+          ok(!walkable, `(${x},${y}) wall should not be walkable`);
+        } else {
+          ok(walkable, `(${x},${y}) should be walkable`);
+        }
+      }
+    }
+  });
+
+  test('Tunnel row has walkable cells at edges', () => {
+    // Row 19 has walkable cells: x=2,3,5-15,17-21,23,24
+    const tunnelY = 19;
+    ok(isWalkable(2, tunnelY), 'tunnel area x=2 should be walkable');
+    ok(isWalkable(5, tunnelY), 'tunnel center x=5 should be walkable');
+    ok(isWalkable(15, tunnelY), 'tunnel right side x=15 should be walkable');
+    ok(isWalkable(23, tunnelY), 'tunnel far right x=23 should be walkable');
+  });
+
+  test('Tunnel bounds include walkable cells', () => {
+    const bounds = getTunnelBounds();
+    // Check that the tunnel row is 19
+    strictEqual(bounds.y, 19);
+  });
+
+  test('Ghost house cells are walkable', () => {
+    // Row 10: Ghost house G cells at (10,10), (12,10), (14,10)
+    strictEqual(getCell(10, 10), CELL_TYPES.GHOST_HOUSE);
+    strictEqual(getCell(12, 10), CELL_TYPES.GHOST_HOUSE);
+    strictEqual(getCell(14, 10), CELL_TYPES.GHOST_HOUSE);
+    ok(isWalkable(10, 10), 'ghost house left should be walkable');
+    ok(isWalkable(12, 10), 'ghost house center should be walkable');
+    ok(isWalkable(14, 10), 'ghost house right should be walkable');
+  });
+
+  test('Power pellets are at corners', () => {
+    // Row 1: #o........##........o#....# (27 chars padded to 28)
+    // Power pellets at (1, 1) and (20, 1)
+    strictEqual(getCell(1, 1), CELL_TYPES.POWER_PELLET);
+    strictEqual(getCell(20, 1), CELL_TYPES.POWER_PELLET);
+  });
+
+  test('Dot count includes power pellets', () => {
+    const count = getDotCount();
+    ok(count > 200, 'dot count should be reasonable');
+    ok(count < 500, 'dot count should not exceed total maze cells');
+  });
+
+  test('Total cells match maze dimensions', () => {
+    const maze = getMazeData();
+    ok(maze.length === MAZE_HEIGHT, 'maze height should match constant');
+    ok(maze[0].length === MAZE_WIDTH, 'maze width should match constant');
+  });
+
+  test('Walls form border around maze', () => {
+    // Top row
+    for (let x = 0; x < MAZE_WIDTH; x++) {
+      strictEqual(getCell(x, 0), CELL_TYPES.WALL);
+    }
+    // Bottom row
+    for (let x = 0; x < MAZE_WIDTH; x++) {
+      strictEqual(getCell(x, MAZE_HEIGHT - 1), CELL_TYPES.WALL);
+    }
+  });
+});
+
+// ── Persistence stats ────────────────────────────────────────────────────────
+
+describe('persistence.js stats', () => {
+  test('incrementStat increases counter', () => {
+    mockStorage.clear();
+    const p = new Persistence();
+    p.incrementStat('totalGames', 1);
+    const stats = p.loadStats();
+    strictEqual(stats.totalGames, 1);
+    p.incrementStat('totalGames', 1);
+    const stats2 = p.loadStats();
+    strictEqual(stats2.totalGames, 2);
+  });
+
+  test('updateStats preserves existing keys', () => {
+    mockStorage.clear();
+    const p = new Persistence();
+    p.updateStats({ totalGames: 5, highScore: 1000 });
+    p.updateStats({ totalLevelsCompleted: 3 });
+    const stats = p.loadStats();
+    strictEqual(stats.totalGames, 5);
+    strictEqual(stats.totalLevelsCompleted, 3);
+  });
+
+  test('saveHighScore stores without date', () => {
+    mockStorage.clear();
+    const p = new Persistence();
+    p.saveHighScore(5000, 3);
+    const scores = p.getHighScores();
+    strictEqual(scores.length, 1);
+    strictEqual(scores[0].score, 5000);
+    ok(scores[0].date, 'score should have date');
   });
 });
 

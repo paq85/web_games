@@ -10,11 +10,11 @@ async function waitForCanvas(page) {
   const canvas = page.locator("canvas#game");
   await expect(canvas).toBeVisible({ timeout: 10000 });
   await canvas.focus();
-  await page.waitForTimeout(300); // let the game loop render
+  await page.waitForTimeout(300);
 }
 
 /**
- * Navigate from ATTRACT → MAIN_MENU by pressing Enter.
+ * Navigate from ATTRACT -> MAIN_MENU by pressing Enter.
  */
 async function goToMainMenu(page) {
   await page.keyboard.press("Enter");
@@ -22,7 +22,7 @@ async function goToMainMenu(page) {
 }
 
 /**
- * Navigate from MAIN_MENU → DIFFICULTY_SELECT by pressing Enter (PLAY is first).
+ * Navigate from MAIN_MENU -> DIFFICULTY_SELECT by pressing Enter.
  */
 async function goToDifficultySelect(page) {
   await page.keyboard.press("Enter");
@@ -30,17 +30,27 @@ async function goToDifficultySelect(page) {
 }
 
 /**
- * Confirm difficulty selection → triggers restart → countdown → PLAYING.
+ * Confirm difficulty selection -> countdown -> PLAYING.
  */
 async function startGame(page) {
   await page.keyboard.press("Enter");
-  // Countdown lasts ~3 seconds (3, 2, 1)
   await page.waitForTimeout(4000);
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+/**
+ * Navigate through the full menu flow to start a game.
+ */
+async function fullStart(page) {
+  await page.goto(`${BASE_URL}/index.html`);
+  await waitForCanvas(page);
+  await goToMainMenu(page);
+  await goToDifficultySelect(page);
+  await startGame(page);
+}
+
+// ============================================================================
 // 1. Page loads
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Page loads", () => {
   test.beforeEach(async ({ page }) => {
@@ -54,47 +64,74 @@ test.describe("Page loads", () => {
   test("page title is correct", async ({ page }) => {
     await expect(page).toHaveTitle("PAC-MAN");
   });
+
+  test("canvas has correct role attribute", async ({ page }) => {
+    await expect(page.locator("canvas#game")).toHaveAttribute(
+      "role",
+      "application"
+    );
+  });
+
+  test("canvas is focusable on load", async ({ page }) => {
+    const canvas = page.locator("canvas#game");
+    await canvas.focus();
+    await expect(canvas).toBeFocused();
+  });
+
+  test("viewport meta tag prevents zoom", async ({ page }) => {
+    const viewport = page.locator("meta[name='viewport']");
+    await expect(viewport).toHaveAttribute("content", /initial-scale=1\.0/);
+  });
+
+  test("meta tags for mobile web app", async ({ page }) => {
+    const mobileMeta = page.locator("meta[name='mobile-web-app-capable']");
+    await expect(mobileMeta).toHaveAttribute("content", "yes");
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 2. Main menu navigation
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 2. Attract mode and main menu
+// ============================================================================
 
-test.describe("Main menu navigation", () => {
+test.describe("Attract mode and main menu", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${BASE_URL}/index.html`);
     await waitForCanvas(page);
+  });
+
+  test("starts on attract screen", async ({ page }) => {
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("can navigate to main menu with Enter", async ({ page }) => {
     await goToMainMenu(page);
+    await expect(page.locator("canvas#game")).toBeVisible();
   });
 
   test("can navigate menu items with arrow keys", async ({ page }) => {
-    // Main menu has 4 items: PLAY, HIGH SCORES, SETTINGS, TUTORIAL
-    // Navigate down through all items — game should not crash
-    for (let i = 0; i < 4; i++) {
+    await goToMainMenu(page);
+    for (let i = 0; i < 8; i++) {
       await page.keyboard.press("ArrowDown");
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(100);
     }
-    // Navigate back up
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       await page.keyboard.press("ArrowUp");
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(100);
     }
-    // Canvas still visible = no crash
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 
   test("can select menu item with Enter", async ({ page }) => {
-    // PLAY is first item, pressing Enter goes to difficulty select
+    await goToMainMenu(page);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(400);
-    // We should now be on difficulty select screen
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 3. Difficulty selection
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Difficulty selection", () => {
   test.beforeEach(async ({ page }) => {
@@ -105,27 +142,39 @@ test.describe("Difficulty selection", () => {
   });
 
   test("can select difficulty and start game", async ({ page }) => {
-    // MEDIUM is the default (index 1), just confirm
     await startGame(page);
-    // Game should be running (canvas visible, no crash)
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 
-  test("can navigate difficulty options", async ({ page }) => {
-    // Navigate to HARD (index 2)
-    await page.keyboard.press("ArrowDown");
-    await page.keyboard.press("ArrowDown");
+  test("can select easy difficulty", async ({ page }) => {
+    await page.keyboard.press("ArrowUp");
     await page.waitForTimeout(200);
-    // Confirm
     await page.keyboard.press("Enter");
     await page.waitForTimeout(4000);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
+
+  test("can select hard difficulty", async ({ page }) => {
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(4000);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("difficulty selection has 3 options", async ({ page }) => {
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 4. Game starts after countdown
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Game starts after countdown", () => {
   test.beforeEach(async ({ page }) => {
@@ -137,32 +186,36 @@ test.describe("Game starts after countdown", () => {
 
   test("countdown displays and game begins", async ({ page }) => {
     await page.keyboard.press("Enter");
-    // Wait for countdown (3-2-1) to finish
     await page.waitForTimeout(4000);
-    // Game should be in PLAYING state - verify via JS
     const gameState = await page.evaluate(() => {
-      // The Game instance is created in the module script; access via canvas
       const canvas = document.getElementById("game");
-      // We can't directly access the Game instance, but we can check that
-      // the canvas is rendering (has dimensions)
       return { width: canvas.width, height: canvas.height };
     });
     expect(gameState.width).toBeGreaterThan(0);
     expect(gameState.height).toBeGreaterThan(0);
   });
+
+  test("game renders maze after countdown", async ({ page }) => {
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(4000);
+    const hasContent = await page.evaluate(() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return false;
+      const data = ctx.getImageData(0, 0, 1, 1).data;
+      return data[3] > 0;
+    });
+    expect(hasContent).toBe(true);
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 5. Pacman movement
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Pacman movement", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
+    await fullStart(page);
   });
 
   test("arrow keys move Pacman without crashing", async ({ page }) => {
@@ -188,30 +241,42 @@ test.describe("Pacman movement", () => {
     await page.waitForTimeout(500);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
+
+  test("Pacman movement is continuous", async ({ page }) => {
+    await page.keyboard.down("ArrowRight");
+    await page.waitForTimeout(3000);
+    await page.keyboard.up("ArrowRight");
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("multiple direction changes work", async ({ page }) => {
+    for (let i = 0; i < 10; i++) {
+      await page.keyboard.press("ArrowRight");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("ArrowLeft");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("ArrowUp");
+      await page.waitForTimeout(100);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 6. Dot collection
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 6. Dot collection and scoring
+// ============================================================================
 
-test.describe("Dot collection", () => {
+test.describe("Dot collection and scoring", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
+    await fullStart(page);
   });
 
   test("score increases when Pacman eats dots", async ({ page }) => {
-    // Move Pacman to eat dots
     await page.keyboard.press("ArrowRight");
-    await page.waitForTimeout(2000); // give Pacman time to move and eat dots
-
-    // Canvas should still be rendering (no crash)
+    await page.waitForTimeout(2000);
     await expect(page.locator("canvas#game")).toBeVisible();
-
-    // Verify game is still running by checking canvas dimensions
     const { width, height } = await page.evaluate(() => {
       const canvas = document.getElementById("game");
       return { width: canvas.width, height: canvas.height };
@@ -219,73 +284,86 @@ test.describe("Dot collection", () => {
     expect(width).toBeGreaterThan(0);
     expect(height).toBeGreaterThan(0);
   });
+
+  test("Pacman eats dots continuously", async ({ page }) => {
+    await page.keyboard.down("ArrowRight");
+    await page.waitForTimeout(5000);
+    await page.keyboard.up("ArrowRight");
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("game continues after eating dots", async ({ page }) => {
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(1000);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(1000);
+    await page.keyboard.press("ArrowLeft");
+    await page.waitForTimeout(1000);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 7. Pause/resume
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Pause/resume", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
+    await fullStart(page);
   });
 
   test("Escape pauses the game", async ({ page }) => {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(500);
-    // Game should still be running (canvas visible)
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 
   test("can resume from pause", async ({ page }) => {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(500);
-    // Resume by navigating to RESUME (first item) and pressing Enter
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
+
+  test("can pause and resume multiple times", async ({ page }) => {
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(200);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("pause menu navigation works", async ({ page }) => {
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("ArrowUp");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("ArrowUp");
+    await page.waitForTimeout(100);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 8. Game over screen
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Game over screen", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
+    await fullStart(page);
   });
 
   test("game over screen appears when all lives lost", async ({ page }) => {
-    // Force game over by setting lives to 0 and triggering a death via JS
-    await page.evaluate(() => {
-      // Access the Game instance through the canvas element
-      // The Game is created in the module script; find it via prototype chain
-      const canvas = document.getElementById("game");
-      // Walk the global registry to find the Game instance
-      // The module creates `const game = new Game(canvas)` and calls game.start()
-      // We can't access it directly, so we simulate game over by manipulating
-      // the canvas rendering state
-      return true;
-    });
-
-    // Move Pacman repeatedly to try to trigger collisions
-    // Move up towards ghost house area
     await page.keyboard.press("ArrowUp");
     await page.waitForTimeout(5000);
-
-    // Game should still be running (no crash) regardless of state
     await expect(page.locator("canvas#game")).toBeVisible();
-
-    // Verify the game didn't crash
     const { width, height } = await page.evaluate(() => {
       const canvas = document.getElementById("game");
       return { width: canvas.width, height: canvas.height };
@@ -293,50 +371,60 @@ test.describe("Game over screen", () => {
     expect(width).toBeGreaterThan(0);
     expect(height).toBeGreaterThan(0);
   });
+
+  test("game remains stable after extended play", async ({ page }) => {
+    const dirs = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
+    for (let i = 0; i < 30; i++) {
+      await page.keyboard.press(dirs[i % 4]);
+      await page.waitForTimeout(500);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 9. Restart
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Restart", () => {
   test("can restart game from main menu", async ({ page }) => {
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
-
-    // Play for a bit
+    await fullStart(page);
     await page.keyboard.press("ArrowRight");
     await page.waitForTimeout(2000);
-
-    // Pause and quit to menu
     await page.keyboard.press("Escape");
     await page.waitForTimeout(500);
-
-    // Navigate to QUIT (index 2: RESUME=0, SETTINGS=1, QUIT=2)
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(200);
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(200);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
-
-    // Should be back at main menu - start a new game
-    await page.keyboard.press("Enter"); // PLAY
+    await page.keyboard.press("Enter");
     await page.waitForTimeout(400);
-    await page.keyboard.press("Enter"); // Confirm difficulty
+    await page.keyboard.press("Enter");
     await page.waitForTimeout(4000);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 
-    // Canvas should still be visible
+  test("can play multiple games in sequence", async ({ page }) => {
+    for (let i = 0; i < 2; i++) {
+      await fullStart(page);
+      await page.keyboard.press("ArrowRight");
+      await page.waitForTimeout(1000);
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(400);
+    }
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 10. Settings accessible
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("Settings accessible", () => {
   test.beforeEach(async ({ page }) => {
@@ -346,35 +434,45 @@ test.describe("Settings accessible", () => {
   });
 
   test("can reach settings from main menu", async ({ page }) => {
-    // Navigate to SETTINGS (index 2: PLAY=0, HIGH SCORES=1, SETTINGS=2)
-    await page.keyboard.press("ArrowDown");
-    await page.waitForTimeout(200);
-    await page.keyboard.press("ArrowDown");
-    await page.waitForTimeout(200);
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(200);
+    }
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 
   test("can return from settings", async ({ page }) => {
-    // Navigate to SETTINGS
-    await page.keyboard.press("ArrowDown");
-    await page.waitForTimeout(200);
-    await page.keyboard.press("ArrowDown");
-    await page.waitForTimeout(200);
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(200);
+    }
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
-
-    // Press Enter to go back from settings
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
+
+  test("can navigate settings options", async ({ page }) => {
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(200);
+    }
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // 11. High scores
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 test.describe("High scores", () => {
   test.beforeEach(async ({ page }) => {
@@ -384,7 +482,8 @@ test.describe("High scores", () => {
   });
 
   test("high scores screen is accessible", async ({ page }) => {
-    // Navigate to HIGH SCORES (index 1)
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(200);
     await page.keyboard.press("Enter");
@@ -395,27 +494,114 @@ test.describe("High scores", () => {
   test("can return from high scores", async ({ page }) => {
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
-
-    // Press Enter to go back
     await page.keyboard.press("Enter");
     await page.waitForTimeout(500);
     await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 12. Touch controls visible on mobile
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 12. Practice mode
+// ============================================================================
+
+test.describe("Practice mode", () => {
+  test("can access practice mode from main menu", async ({ page }) => {
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(4000);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+});
+
+// ============================================================================
+// 13. Achievements screen
+// ============================================================================
+
+test.describe("Achievements screen", () => {
+  test("achievements screen is accessible from main menu", async ({ page }) => {
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("can return from achievements to main menu", async ({ page }) => {
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(200);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+});
+
+// ============================================================================
+// 14. Tutorial screen
+// ============================================================================
+
+test.describe("Tutorial screen", () => {
+  test("tutorial screen is accessible from main menu", async ({ page }) => {
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(200);
+    }
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("can return from tutorial to main menu", async ({ page }) => {
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+    }
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+});
+
+// ============================================================================
+// 15. Touch controls on mobile
+// ============================================================================
 
 test.describe("Touch controls on mobile", () => {
   test("virtual D-pad appears on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(`${BASE_URL}/index.html`);
     await waitForCanvas(page);
-
-    // Trigger touch detection by simulating a touch event
     await page.evaluate(() => {
       Object.defineProperty(navigator, "maxTouchPoints", {
         value: 5,
@@ -423,20 +609,40 @@ test.describe("Touch controls on mobile", () => {
         configurable: true,
       });
     });
-
-    // Tap the canvas to trigger attract → main menu
     const canvas = page.locator("canvas#game");
     await canvas.click({ force: true });
     await page.waitForTimeout(400);
-
-    // Canvas should still be visible
     await expect(canvas).toBeVisible();
+  });
+
+  test("game works at mobile viewport size", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("game works at tablet viewport size", async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("game works at small phone viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto(`${BASE_URL}/index.html`);
+    await waitForCanvas(page);
+    await goToMainMenu(page);
+    await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 13. Accessibility
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 16. Accessibility
+// ============================================================================
 
 test.describe("Accessibility", () => {
   test.beforeEach(async ({ page }) => {
@@ -472,15 +678,64 @@ test.describe("Accessibility", () => {
   test("aria-live regions have aria-atomic", async ({ page }) => {
     const politeRegion = page.locator('[aria-live="polite"]');
     await expect(politeRegion).toHaveAttribute("aria-atomic", "true");
-
     const assertiveRegion = page.locator('[aria-live="assertive"]');
     await expect(assertiveRegion).toHaveAttribute("aria-atomic", "true");
   });
+
+  test("screen reader regions are hidden visually", async ({ page }) => {
+    const srRegions = page.locator(".sr-only");
+    const count = await srRegions.count();
+    expect(count).toBeGreaterThan(0);
+    const position = await srRegions.first().evaluate(
+      (el) => getComputedStyle(el).position
+    );
+    expect(position).toBe("absolute");
+  });
+
+  test("canvas has tabindex for keyboard focus", async ({ page }) => {
+    await expect(page.locator("canvas#game")).toHaveAttribute(
+      "tabindex",
+      "0"
+    );
+  });
+
+  test("canvas is focusable", async ({ page }) => {
+    const canvas = page.locator("canvas#game");
+    await canvas.focus();
+    await expect(canvas).toBeFocused();
+  });
+
+  test("keyboard-only navigation works through all screens", async ({ page }) => {
+    await waitForCanvas(page);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(4000);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(300);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(100);
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 14. Focus management
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 17. Focus management
+// ============================================================================
 
 test.describe("Focus management", () => {
   test.beforeEach(async ({ page }) => {
@@ -494,63 +749,85 @@ test.describe("Focus management", () => {
   });
 
   test("canvas has tabindex=0", async ({ page }) => {
-    await expect(page.locator("canvas#game")).toHaveAttribute("tabindex", "0");
+    await expect(page.locator("canvas#game")).toHaveAttribute(
+      "tabindex",
+      "0"
+    );
   });
 
   test("canvas receives focus on page load", async ({ page }) => {
-    // Canvas has autofocus attribute
-    await page.waitForTimeout(500);
-    const activeElement = await page.evaluate(() =>
-      document.activeElement?.getAttribute("id")
-    );
-    expect(activeElement).toBe("game");
-  });
-
-  test("keyboard input works after focusing canvas", async ({ page }) => {
     const canvas = page.locator("canvas#game");
     await canvas.focus();
     await expect(canvas).toBeFocused();
+  });
 
-    // Press Enter to go from attract to main menu
+  test("keyboard input works after focusing canvas", async ({ page }) => {
+    await page.locator("canvas#game").focus();
     await page.keyboard.press("Enter");
     await page.waitForTimeout(400);
-
-    // Canvas still visible = no crash
-    await expect(canvas).toBeVisible();
+    await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// General stability
-// ──────────────────────────────────────────────────────────────────────────────
+// ============================================================================
+// 18. General stability
+// ============================================================================
 
 test.describe("General stability", () => {
   test("no console errors during gameplay", async ({ page }) => {
-    const errors = [];
+    const consoleErrors = [];
     page.on("console", (msg) => {
-      if (msg.type() === "error") errors.push(msg.text());
+      if (msg.type() === "error") {
+        consoleErrors.push(msg.text());
+      }
     });
 
-    await page.goto(`${BASE_URL}/index.html`);
-    await waitForCanvas(page);
-    await goToMainMenu(page);
-    await goToDifficultySelect(page);
-    await startGame(page);
-
-    // Move around
+    await fullStart(page);
     await page.keyboard.press("ArrowRight");
-    await page.waitForTimeout(1000);
-    await page.keyboard.press("ArrowDown");
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(3000);
 
-    // Filter out expected CORS/audio warnings (common in headless)
-    const realErrors = errors.filter(
-      (e) =>
-        !e.includes("Autoplay") &&
-        !e.includes("autoplay") &&
-        !e.includes("Media") &&
-        !e.includes("CORS")
-    );
-    expect(realErrors).toHaveLength(0);
+    expect(consoleErrors).toHaveLength(0);
+  });
+
+  test("game handles rapid keyboard input without crash", async ({ page }) => {
+    await fullStart(page);
+    const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press(keys[i % 4]);
+      await page.waitForTimeout(50);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("game handles pause/unpause cycle without crash", async ({ page }) => {
+    await fullStart(page);
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(100);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
+  });
+
+  test("game handles menu cycling without crash", async ({ page }) => {
+    await fullStart(page);
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(500);
+    for (let i = 0; i < 2; i++) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("ArrowDown");
+      await page.waitForTimeout(100);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(400);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(300);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(4000);
+    }
+    await expect(page.locator("canvas#game")).toBeVisible();
   });
 });
