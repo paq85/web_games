@@ -21,6 +21,7 @@ A collection of retro-style web games built with HTML5 Canvas and vanilla JavaSc
 | [Pac-Man](pacman/) | [pacman/](pacman/) | [Play](https://paq85.github.io/web_games/pacman/) | Navigate the maze, eat dots, and avoid ghosts — power pellets let you turn the tables |
 | [Frogger](frogger/) | [frogger/](frogger/) | [Play](https://paq85.github.io/web_games/frogger/) | Guide your frog across busy roads and rivers — dodge cars and hop on logs |
 | [Doodle Jump](doodle_jump/) | [doodle_jump/](doodle_jump/) | [Play](https://paq85.github.io/web_games/doodle_jump/) | Endless climbing game with hand-drawn sketch style, multiple platform types, power-ups, and accessibility features |
+| [Minesweeper](minesweeper/) | [minesweeper/](minesweeper/) | [Play](https://paq85.github.io/web_games/minesweeper/) | Classic mine-clearing puzzle with three difficulties, custom boards, chord clicking, keyboard/touch support, and persistent best times |
 
 ## Coding Info
 

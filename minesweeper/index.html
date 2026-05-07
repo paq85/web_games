@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Minesweeper</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background: #1a1a2e; margin: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div aria-live="polite" id="sr-polite" class="sr-only"></div>
+  <div aria-live="assertive" id="sr-assertive" class="sr-only"></div>
+
+  <script src="js/board.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
